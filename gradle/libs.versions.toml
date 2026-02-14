@@ -1,0 +1,78 @@
+[versions]
+agp = "9.1.0-alpha09"
+kotlin = "2.3.10"
+kotlinxSerialization = "1.10.0"
+
+# Android SDK versions
+androidCompileSdk = "35"
+androidMinSdk = "26"
+
+# Google 官方库版本
+coreKtx = "1.17.0"
+lifecycleRuntimeKtx = "2.10.0"
+activityCompose = "1.12.2"
+navigationCompose = "2.9.6"
+composeBom = "2025.12.01"
+
+# 第三方库版本
+coil = "3.3.0"
+richeditor = "1.0.0-rc13"
+materialDialogs = "0.9.0"
+sheetsDialogs = "1.3.0"
+lottie = "6.7.1"
+accompanist = "0.37.3"
+toaster = "12.0"
+mmkv = "2.3.0"
+timber = "5.0.1"
+
+# Ktor
+ktor = "3.0.1"
+
+[libraries]
+# ==================== BOM ====================
+androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
+
+# ==================== Google 官方库 ====================
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-lifecycle-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycleRuntimeKtx" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+androidx-compose-ui = { module = "androidx.compose.ui:ui" }
+androidx-compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
+androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
+androidx-compose-material-icons-core = { module = "androidx.compose.material:material-icons-core" }
+androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
+androidx-compose-foundation = { module = "androidx.compose.foundation:foundation" }
+
+# ==================== 第三方库 ====================
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+richeditor-compose = { module = "com.mohamedrejeb.richeditor:richeditor-compose", version.ref = "richeditor" }
+material-dialogs-core = { module = "io.github.vanpra.compose-material-dialogs:core", version.ref = "materialDialogs" }
+material-dialogs-datetime = { module = "io.github.vanpra.compose-material-dialogs:datetime", version.ref = "materialDialogs" }
+material-dialogs-color = { module = "io.github.vanpra.compose-material-dialogs:color", version.ref = "materialDialogs" }
+sheets-dialogs-core = { module = "com.maxkeppeler.sheets-compose-dialogs:core", version.ref = "sheetsDialogs" }
+sheets-dialogs-calendar = { module = "com.maxkeppeler.sheets-compose-dialogs:calendar", version.ref = "sheetsDialogs" }
+sheets-dialogs-clock = { module = "com.maxkeppeler.sheets-compose-dialogs:clock", version.ref = "sheetsDialogs" }
+lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie" }
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
+toaster = { module = "com.github.getActivity:Toaster", version.ref = "toaster" }
+mmkv = { module = "com.tencent:mmkv", version.ref = "mmkv" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
+
+# ==================== Ktor ====================
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

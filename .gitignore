@@ -1,0 +1,52 @@
+# ==================== Android ====================
+*.iml
+.gradle
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# ==================== IDE ====================
+# Android Studio
+.idea
+.kotlin
+.trae
+
+# ==================== OS ====================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ==================== Kotlin ====================
+*.kotlin_module
+
+# ==================== Compose ====================
+# Compose compiler reports
+*.compose-report
+
+# ==================== Build ====================
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+*.jar
+*.war
+*.ear
+
+# ==================== Logs ====================
+*.log
+*.txt
+
+# ==================== Keystore ====================
+*.jks
+*.keystore
+
+# ==================== Secrets ====================
+secrets.properties
+apikey.properties

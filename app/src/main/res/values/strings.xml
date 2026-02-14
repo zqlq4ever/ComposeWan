@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">ComposeWan</string>
+    <string name="current_page">当前页面：</string>
+    <string name="nav_home">首页</string>
+    <string name="nav_hot">热点</string>
+    <string name="nav_system">体系</string>
+    <string name="nav_mine">我的</string>
+    <string name="search_hint">搜索文章</string>
+    <string name="clicked_item">点击了: %s</string>
+</resources>

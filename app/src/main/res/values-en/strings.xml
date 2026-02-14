@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">ComposeWan</string>
+    <string name="current_page">Current Page: </string>
+    <string name="nav_home">Home</string>
+    <string name="nav_hot">Hot</string>
+    <string name="nav_system">System</string>
+    <string name="nav_mine">Mine</string>
+    <string name="clicked_item">Clicked: %s</string>
+</resources>
