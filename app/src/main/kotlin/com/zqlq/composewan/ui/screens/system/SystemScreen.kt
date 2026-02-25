@@ -5,13 +5,13 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -69,6 +70,7 @@ fun SystemScreen(
                 is SystemEffect.ShowToast -> {
                     ToastUtils.show(effect.message)
                 }
+
                 is SystemEffect.NavigateToSystemDetail -> {
                     onNavigateToSystemDetail(effect.categoryName, effect.children)
                 }
@@ -101,6 +103,7 @@ private fun SystemContent(
                 CircularProgressIndicator()
             }
         }
+
         state.error != null && state.categories.isEmpty() -> {
             Box(
                 modifier = modifier.fillMaxSize(),
@@ -112,6 +115,7 @@ private fun SystemContent(
                 )
             }
         }
+
         else -> {
             LazyColumn(
                 modifier = modifier
@@ -155,14 +159,17 @@ private fun CategoryItem(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onToggleExpand() }
+                    .clickable(
+                        indication = null, // 禁用水波纹效果
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { onToggleExpand() }
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -237,14 +244,14 @@ private fun ChildItem(
         modifier = modifier.wrapContentSize(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
         ),
         onClick = onClick
     ) {
         Text(
             text = child.name,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
             modifier = Modifier.padding(vertical = 6.dp, horizontal = 12.dp)
         )
     }

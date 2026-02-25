@@ -162,11 +162,11 @@ class HomeViewModel : ViewModel() {
     }
 
     private fun mockBanners(): List<BannerItem> = listOf(
-        BannerItem(1, "Banner 1", "", "https://www.wanandroid.com"),
-        BannerItem(2, "Banner 2", "", "https://www.wanandroid.com"),
-        BannerItem(3, "Banner 3", "", "https://www.wanandroid.com"),
-        BannerItem(4, "Banner 4", "", "https://www.wanandroid.com"),
-        BannerItem(5, "Banner 5", "", "https://www.wanandroid.com")
+        BannerItem(1, "Banner 1", "https://bing.biturl.top/?resolution=1920&format=image&index=1", "https://www.wanandroid.com"),
+        BannerItem(2, "Banner 2", "https://bing.biturl.top/?resolution=1920&format=image&index=2", "https://www.wanandroid.com"),
+        BannerItem(3, "Banner 3", "https://bing.biturl.top/?resolution=1920&format=image&index=3", "https://www.wanandroid.com"),
+        BannerItem(4, "Banner 4", "https://bing.biturl.top/?resolution=1920&format=image&index=4", "https://www.wanandroid.com"),
+        BannerItem(5, "Banner 5", "https://bing.biturl.top/?resolution=1920&format=image&index=5", "https://www.wanandroid.com")
     )
 
     private fun mockArticles(): List<ArticleItem> = listOf(

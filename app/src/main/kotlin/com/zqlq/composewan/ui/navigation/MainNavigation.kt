@@ -31,6 +31,8 @@ import com.zqlq.composewan.ui.screens.about.AboutScreen
 import com.zqlq.composewan.ui.screens.collect.CollectScreen
 import com.zqlq.composewan.ui.screens.home.HomeScreen
 import com.zqlq.composewan.ui.screens.hot.HotScreen
+import com.zqlq.composewan.ui.screens.login.LoginScreen
+import com.zqlq.composewan.ui.screens.login.RegisterScreen
 import com.zqlq.composewan.ui.screens.mine.MineScreen
 import com.zqlq.composewan.ui.screens.search.SearchScreen
 import com.zqlq.composewan.ui.screens.system.SystemDetailScreen
@@ -62,6 +64,8 @@ fun MainNavigation() {
     var showSearchScreen by remember { mutableStateOf(false) }
     var showSystemDetailScreen by remember { mutableStateOf(false) }
     var showCollectScreen by remember { mutableStateOf(false) }
+    var showLoginScreen by remember { mutableStateOf(false) }
+    var showRegisterScreen by remember { mutableStateOf(false) }
     var selectedCategoryName by remember { mutableStateOf("") }
     var selectedCategoryChildren by remember { mutableStateOf(emptyList<com.zqlq.composewan.data.model.SystemChild>()) }
     var initialSearchQuery by remember { mutableStateOf("") }
@@ -113,6 +117,27 @@ fun MainNavigation() {
         CollectScreen(
             onBack = { showCollectScreen = false },
             onNavigateToWebView = { url -> webViewUrl = url },
+            modifier = Modifier.fillMaxSize()
+        )
+        return
+    }
+
+    // 显示RegisterScreen
+    if (showRegisterScreen) {
+        RegisterScreen(
+            onBack = { showRegisterScreen = false },
+            onRegisterSuccess = { showRegisterScreen = false; showLoginScreen = true },
+            modifier = Modifier.fillMaxSize()
+        )
+        return
+    }
+
+    // 显示LoginScreen
+    if (showLoginScreen) {
+        LoginScreen(
+            onBack = { showLoginScreen = false },
+            onNavigateToRegister = { showRegisterScreen = true },
+            onLoginSuccess = { showLoginScreen = false },
             modifier = Modifier.fillMaxSize()
         )
         return
@@ -195,9 +220,9 @@ fun MainNavigation() {
                 }
             )
             3 -> MineScreen(
-                modifier = Modifier.padding(it),
                 onAboutClick = { showAboutScreen = true },
-                onCollectClick = { showCollectScreen = true }
+                onCollectClick = { showCollectScreen = true },
+                onLoginClick = { showLoginScreen = true }
             )
         }
     }

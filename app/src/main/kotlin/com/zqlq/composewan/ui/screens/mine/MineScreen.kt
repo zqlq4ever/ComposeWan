@@ -5,18 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -25,23 +14,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Upgrade
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -60,6 +35,7 @@ import com.zqlq.common.utils.toast.ToastUtils
 private val bgUrl1 = "https://picsum.photos/400/300"
 private val bgUrl2 = "https://bing.biturl.top/?resolution=1920&format=image&index=random"
 private val avatarUrl1 = "https://api.eyabc.cn/api/picture/beauty"
+private val avatarUrl2 = "https://api.eyabc.cn/api/picture/mc"
 
 /**
  * 我的屏幕
@@ -67,39 +43,45 @@ private val avatarUrl1 = "https://api.eyabc.cn/api/picture/beauty"
  *
  * @param onAboutClick 关于点击回调
  * @param onCollectClick 我的收藏点击回调
+ * @param onLoginClick 登录点击回调
  */
 @Composable
 fun MineScreen(
     onAboutClick: () -> Unit = {},
     onCollectClick: () -> Unit = {},
-    modifier: Modifier = Modifier
+    onLoginClick: () -> Unit = {}
 ) {
     var showUpdateDialog by remember { mutableStateOf(false) }
     var showAvatarPreview by remember { mutableStateOf(false) }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        HeaderSection(onAvatarClick = { showAvatarPreview = true })
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+                HeaderSection(
+                    onAvatarClick = { showAvatarPreview = true },
+                    onUsernameClick = onLoginClick
+                )
 
-        MenuList(
-            onAboutClick = onAboutClick,
-            onCheckUpdateClick = { showUpdateDialog = true },
-            onCollectClick = onCollectClick
-        )
+                MenuList(
+                    onAboutClick = onAboutClick,
+                    onCheckUpdateClick = { showUpdateDialog = true },
+                    onCollectClick = onCollectClick
+                )
+            }
 
-        if (showUpdateDialog) {
-            UpdateDialog(
-                onDismiss = { showUpdateDialog = false },
-                onUpdate = { showUpdateDialog = false; ToastUtils.show("开始更新...") }
-            )
+            if (showUpdateDialog) {
+                UpdateDialog(
+                    onDismiss = { showUpdateDialog = false },
+                    onUpdate = { showUpdateDialog = false; ToastUtils.show("开始更新...") }
+                )
+            }
+
+            if (showAvatarPreview) {
+                AvatarPreview(
+                    imageUrl = bgUrl1,
+                    onDismiss = { showAvatarPreview = false }
+                )
+            }
         }
-
-        if (showAvatarPreview) {
-            AvatarPreview(
-                imageUrl = bgUrl1,
-                onDismiss = { showAvatarPreview = false }
-            )
-        }
-    }
 }
 
 /**
@@ -153,7 +135,8 @@ fun UpdateDialog(
             TextButton(onClick = onDismiss) {
                 Text("稍后再说")
             }
-        }
+        },
+        shape = RoundedCornerShape(8.dp)
     )
 }
 
@@ -162,11 +145,13 @@ fun UpdateDialog(
  * 包含背景图、头像、用户名
  *
  * @param onAvatarClick 头像点击回调
+ * @param onUsernameClick 用户名点击回调
  */
 @Composable
 private fun HeaderSection(
     modifier: Modifier = Modifier,
-    onAvatarClick: () -> Unit = {}
+    onAvatarClick: () -> Unit = {},
+    onUsernameClick: () -> Unit = {}
 ) {
     Box(
         modifier = modifier
@@ -203,7 +188,7 @@ private fun HeaderSection(
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data("https://api.eyabc.cn/api/picture/beauty")
+                    .data(avatarUrl2)
                     .memoryCachePolicy(CachePolicy.ENABLED)  // 内存缓存
                     .diskCachePolicy(CachePolicy.DISABLED)    // 禁用磁盘缓存
                     .build(),
@@ -221,7 +206,8 @@ private fun HeaderSection(
                 text = "玩Android用户",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = Color.White,
+                modifier = Modifier.clickable(onClick = onUsernameClick)
             )
         }
     }
