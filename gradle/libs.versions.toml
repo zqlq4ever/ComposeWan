@@ -1,5 +1,5 @@
 [versions]
-agp = "9.1.0-alpha09"
+agp = "9.2.0-alpha01"
 kotlin = "2.3.10"
 kotlinxSerialization = "1.10.0"
 
@@ -49,6 +49,7 @@ androidx-compose-foundation = { module = "androidx.compose.foundation:foundation
 
 # ==================== 第三方库 ====================
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 richeditor-compose = { module = "com.mohamedrejeb.richeditor:richeditor-compose", version.ref = "richeditor" }
 material-dialogs-core = { module = "io.github.vanpra.compose-material-dialogs:core", version.ref = "materialDialogs" }
 material-dialogs-datetime = { module = "io.github.vanpra.compose-material-dialogs:datetime", version.ref = "materialDialogs" }

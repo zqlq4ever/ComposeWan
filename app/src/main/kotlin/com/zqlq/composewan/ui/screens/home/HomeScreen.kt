@@ -10,23 +10,33 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +51,7 @@ import com.zqlq.composewan.data.model.BannerItem
 import com.zqlq.composewan.state.home.HomeEffect
 import com.zqlq.composewan.state.home.HomeIntent
 import com.zqlq.composewan.state.home.HomeState
+import com.zqlq.composewan.ui.components.ArticleItemView
 import com.zqlq.composewan.viewmodel.home.HomeViewModel
 import kotlinx.coroutines.flow.collectLatest
 
@@ -110,7 +121,7 @@ private fun HomeContent(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = state.error ?: "未知错误",
+                        text = state.error,
                         color = MaterialTheme.colorScheme.error
                     )
                 }
@@ -127,15 +138,34 @@ private fun HomeContent(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                ArticleList(
-                    items = state.articles,
-                    isLoading = state.isLoading,
-                    onArticleClick = { url -> onIntent(HomeIntent.ArticleClick(url)) },
-                    onLoadMore = { onIntent(HomeIntent.LoadMore) },
+                val pullToRefreshState = rememberPullToRefreshState()
+                
+                PullToRefreshBox(
+                    state = pullToRefreshState,
+                    isRefreshing = state.isRefreshing,
+                    onRefresh = { onIntent(HomeIntent.Refresh) },
                     modifier = Modifier
                         .fillMaxSize()
-                        .weight(1f)
-                )
+                        .weight(1f),
+                    indicator = {
+                        Indicator(
+                            modifier = Modifier.align(Alignment.TopCenter),
+                            isRefreshing = state.isRefreshing,
+                            color = MaterialTheme.colorScheme.primary,
+                            state = pullToRefreshState
+                        )
+                    }
+                ) {
+                    ArticleList(
+                        items = state.articles,
+                        isLoading = state.isLoading,
+                        hasMore = state.hasMore,
+                        onArticleClick = { url -> onIntent(HomeIntent.ArticleClick(url)) },
+                        onCollectClick = { id, isCollect -> onIntent(HomeIntent.CollectClick(id, isCollect)) },
+                        onLoadMore = { onIntent(HomeIntent.LoadMore) },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
         }
     }
@@ -223,11 +253,26 @@ private fun BannerPager(
 private fun ArticleList(
     items: List<ArticleItem>,
     isLoading: Boolean,
+    hasMore: Boolean,
     onArticleClick: (String) -> Unit,
+    onCollectClick: (Int, Boolean) -> Unit,
     onLoadMore: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
+
+    LaunchedEffect(listState, items.size, hasMore, isLoading) {
+        snapshotFlow {
+            val layoutInfo = listState.layoutInfo
+            val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()?.index
+            val totalItems = layoutInfo.totalItemsCount
+            lastVisibleItem != null && totalItems > 0 && lastVisibleItem >= totalItems - 3
+        }.collect { shouldLoadMore ->
+            if (shouldLoadMore && hasMore && !isLoading) {
+                onLoadMore()
+            }
+        }
+    }
 
     LazyColumn(
         modifier = modifier.padding(horizontal = 16.dp),
@@ -237,6 +282,7 @@ private fun ArticleList(
             ArticleItemView(
                 article = article,
                 onClick = { onArticleClick(article.url) },
+                onCollectClick = { onCollectClick(article.id, article.isCollect) },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -259,52 +305,4 @@ private fun ArticleList(
     }
 }
 
-/**
- * 文章列表项组件
- */
-@Composable
-private fun ArticleItemView(
-    article: ArticleItem,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        onClick = onClick
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = article.title,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = article.author,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = article.time,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}
+

@@ -43,12 +43,14 @@ import kotlinx.coroutines.flow.collectLatest
  *
  * @param modifier 修饰符
  * @param onNavigateToWebView 跳转 WebView 回调
+ * @param onNavigateToSearch 跳转到搜索页面回调
  * @param viewModel ViewModel
  */
 @Composable
 fun HotScreen(
     modifier: Modifier = Modifier,
     onNavigateToWebView: (String) -> Unit = {},
+    onNavigateToSearch: (String) -> Unit = {},
     viewModel: HotViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -60,6 +62,7 @@ fun HotScreen(
                     ToastUtils.show(effect.message)
                 }
                 is HotEffect.NavigateToWebView -> onNavigateToWebView(effect.url)
+                is HotEffect.NavigateToSearch -> onNavigateToSearch(effect.keyword)
             }
         }
     }

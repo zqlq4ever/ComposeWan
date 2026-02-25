@@ -21,6 +21,9 @@ sealed interface HomeIntent {
     
     /** 点击搜索 */
     data object SearchClick : HomeIntent
+    
+    /** 点击收藏 */
+    data class CollectClick(val articleId: Int, val isCollect: Boolean) : HomeIntent
 }
 
 /**

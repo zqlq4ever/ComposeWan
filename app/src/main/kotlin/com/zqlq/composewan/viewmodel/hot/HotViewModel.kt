@@ -70,8 +70,7 @@ class HotViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun onHotKeyClick(name: String) {
         viewModelScope.launch {
-            val message = getApplication<Application>().getString(R.string.clicked_item, name)
-            _effect.emit(HotEffect.ShowToast(message))
+            _effect.emit(HotEffect.NavigateToSearch(name))
         }
     }
 

@@ -52,11 +52,13 @@ import kotlinx.coroutines.flow.collectLatest
  * 展示可折叠的分类列表
  *
  * @param modifier 修饰符
+ * @param onNavigateToSystemDetail 跳转到体系详情页面回调
  * @param viewModel ViewModel
  */
 @Composable
 fun SystemScreen(
     modifier: Modifier = Modifier,
+    onNavigateToSystemDetail: (String, List<SystemChild>) -> Unit = { _, _ -> },
     viewModel: SystemViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -66,6 +68,9 @@ fun SystemScreen(
             when (effect) {
                 is SystemEffect.ShowToast -> {
                     ToastUtils.show(effect.message)
+                }
+                is SystemEffect.NavigateToSystemDetail -> {
+                    onNavigateToSystemDetail(effect.categoryName, effect.children)
                 }
             }
         }
@@ -122,7 +127,7 @@ private fun SystemContent(
                         category = category,
                         isExpanded = state.expandedIds.contains(category.id),
                         onToggleExpand = { onIntent(SystemIntent.ToggleExpand(category.id)) },
-                        onChildClick = { child -> onIntent(SystemIntent.ChildClick(child.name)) }
+                        onChildClick = { child -> onIntent(SystemIntent.ChildClick(category.name, category.children)) }
                     )
                 }
             }

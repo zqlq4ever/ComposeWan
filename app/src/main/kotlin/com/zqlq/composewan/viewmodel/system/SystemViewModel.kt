@@ -37,7 +37,7 @@ class SystemViewModel(application: Application) : AndroidViewModel(application) 
         when (intent) {
             is SystemIntent.LoadData -> loadData()
             is SystemIntent.ToggleExpand -> toggleExpand(intent.categoryId)
-            is SystemIntent.ChildClick -> onChildClick(intent.name)
+            is SystemIntent.ChildClick -> onChildClick(intent.categoryName, intent.children)
         }
     }
 
@@ -77,10 +77,9 @@ class SystemViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    private fun onChildClick(name: String) {
+    private fun onChildClick(categoryName: String, children: List<SystemChild>) {
         viewModelScope.launch {
-            val message = getApplication<Application>().getString(R.string.clicked_item, name)
-            _effect.emit(SystemEffect.ShowToast(message))
+            _effect.emit(SystemEffect.NavigateToSystemDetail(categoryName, children))
         }
     }
 

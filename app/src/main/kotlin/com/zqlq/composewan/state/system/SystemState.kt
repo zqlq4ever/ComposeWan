@@ -28,7 +28,7 @@ sealed interface SystemIntent {
     data class ToggleExpand(val categoryId: Int) : SystemIntent
     
     /** 点击子分类 */
-    data class ChildClick(val name: String) : SystemIntent
+    data class ChildClick(val categoryName: String, val children: List<com.zqlq.composewan.data.model.SystemChild>) : SystemIntent
 }
 
 /**
@@ -37,4 +37,7 @@ sealed interface SystemIntent {
 sealed interface SystemEffect {
     /** 显示 Toast */
     data class ShowToast(val message: String) : SystemEffect
+    
+    /** 跳转到体系详情页面 */
+    data class NavigateToSystemDetail(val categoryName: String, val children: List<com.zqlq.composewan.data.model.SystemChild>) : SystemEffect
 }

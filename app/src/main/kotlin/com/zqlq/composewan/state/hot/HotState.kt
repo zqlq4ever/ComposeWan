@@ -41,4 +41,7 @@ sealed interface HotEffect {
     
     /** 跳转 WebView */
     data class NavigateToWebView(val url: String) : HotEffect
+    
+    /** 跳转到搜索页面 */
+    data class NavigateToSearch(val keyword: String) : HotEffect
 }

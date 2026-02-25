@@ -43,6 +43,7 @@ dependencies {
 
     // ==================== 第三方库 ====================
     api(libs.coil.compose)
+    api(libs.coil.network.okhttp)
     api(libs.richeditor.compose)
     api(libs.material.dialogs.core)
     api(libs.material.dialogs.datetime)

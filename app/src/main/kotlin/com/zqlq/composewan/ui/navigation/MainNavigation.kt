@@ -28,9 +28,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import com.zqlq.composewan.R
 import com.zqlq.composewan.ui.screens.about.AboutScreen
+import com.zqlq.composewan.ui.screens.collect.CollectScreen
 import com.zqlq.composewan.ui.screens.home.HomeScreen
 import com.zqlq.composewan.ui.screens.hot.HotScreen
 import com.zqlq.composewan.ui.screens.mine.MineScreen
+import com.zqlq.composewan.ui.screens.search.SearchScreen
+import com.zqlq.composewan.ui.screens.system.SystemDetailScreen
 import com.zqlq.composewan.ui.screens.system.SystemScreen
 import com.zqlq.composewan.ui.screens.webview.WebViewScreen
 
@@ -56,6 +59,12 @@ fun MainNavigation() {
     var selectedItem by remember { mutableIntStateOf(0) }
     var webViewUrl by remember { mutableStateOf<String?>(null) }
     var showAboutScreen by remember { mutableStateOf(false) }
+    var showSearchScreen by remember { mutableStateOf(false) }
+    var showSystemDetailScreen by remember { mutableStateOf(false) }
+    var showCollectScreen by remember { mutableStateOf(false) }
+    var selectedCategoryName by remember { mutableStateOf("") }
+    var selectedCategoryChildren by remember { mutableStateOf(emptyList<com.zqlq.composewan.data.model.SystemChild>()) }
+    var initialSearchQuery by remember { mutableStateOf("") }
 
     val navItems = listOf(
         NavItem(
@@ -99,6 +108,46 @@ fun MainNavigation() {
         return
     }
 
+    // 显示CollectScreen
+    if (showCollectScreen) {
+        CollectScreen(
+            onBack = { showCollectScreen = false },
+            onNavigateToWebView = { url -> webViewUrl = url },
+            modifier = Modifier.fillMaxSize()
+        )
+        return
+    }
+
+    // 显示SearchScreen
+    if (showSearchScreen) {
+        SearchScreen(
+            onBack = {
+                showSearchScreen = false
+                initialSearchQuery = ""
+            },
+            onNavigateToWebView = { url -> webViewUrl = url },
+            initialQuery = initialSearchQuery,
+            modifier = Modifier.fillMaxSize()
+        )
+        return
+    }
+
+    // 显示SystemDetailScreen
+    if (showSystemDetailScreen) {
+        SystemDetailScreen(
+            onBack = {
+                showSystemDetailScreen = false
+                selectedCategoryName = ""
+                selectedCategoryChildren = emptyList()
+            },
+            onNavigateToWebView = { url -> webViewUrl = url },
+            categoryName = selectedCategoryName,
+            children = selectedCategoryChildren,
+            modifier = Modifier.fillMaxSize()
+        )
+        return
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
@@ -122,16 +171,33 @@ fun MainNavigation() {
         when (selectedItem) {
             0 -> HomeScreen(
                 modifier = Modifier.padding(it),
-                onNavigateToWebView = { url -> webViewUrl = url }
+                onNavigateToWebView = { url -> webViewUrl = url },
+                onNavigateToSearch = {
+                    initialSearchQuery = ""
+                    showSearchScreen = true
+                }
             )
             1 -> HotScreen(
                 modifier = Modifier.padding(it),
-                onNavigateToWebView = { url -> webViewUrl = url }
+                onNavigateToWebView = { url -> webViewUrl = url },
+                onNavigateToSearch = { query ->
+                    initialSearchQuery = query
+                    showSearchScreen = true
+                }
             )
-            2 -> SystemScreen(modifier = Modifier.padding(it))
+
+            2 -> SystemScreen(
+                modifier = Modifier.padding(it),
+                onNavigateToSystemDetail = { categoryName, children ->
+                    selectedCategoryName = categoryName
+                    selectedCategoryChildren = children
+                    showSystemDetailScreen = true
+                }
+            )
             3 -> MineScreen(
                 modifier = Modifier.padding(it),
-                onAboutClick = { showAboutScreen = true }
+                onAboutClick = { showAboutScreen = true },
+                onCollectClick = { showCollectScreen = true }
             )
         }
     }
