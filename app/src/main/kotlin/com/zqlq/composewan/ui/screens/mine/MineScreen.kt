@@ -13,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Upgrade
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -24,6 +23,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -31,6 +31,8 @@ import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.zqlq.common.utils.toast.ToastUtils
+import com.zqlq.compose.components.ConfirmPop
+import com.zqlq.composewan.R
 
 private val bgUrl1 = "https://picsum.photos/400/300"
 private val bgUrl2 = "https://bing.biturl.top/?resolution=1920&format=image&index=random"
@@ -69,9 +71,17 @@ fun MineScreen(
             }
 
             if (showUpdateDialog) {
-                UpdateDialog(
+                ConfirmPop(
+                    title = stringResource(R.string.update_dialog_title),
+                    message = stringResource(R.string.update_dialog_message),
+                    confirmText = stringResource(R.string.update_dialog_confirm),
+                    cancelText = stringResource(R.string.update_dialog_cancel),
+                    onConfirm = {
+                        showUpdateDialog = false
+                        ToastUtils.show(R.string.update_started)
+                    },
+                    onCancel = { showUpdateDialog = false },
                     onDismiss = { showUpdateDialog = false },
-                    onUpdate = { showUpdateDialog = false; ToastUtils.show("开始更新...") }
                 )
             }
 
@@ -82,62 +92,6 @@ fun MineScreen(
                 )
             }
         }
-}
-
-/**
- * 更新提示对话框
- *
- * @param onDismiss 关闭回调
- * @param onUpdate 更新回调
- */
-@Composable
-fun UpdateDialog(
-    onDismiss: () -> Unit,
-    onUpdate: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("发现新版本")
-                Icon(
-                    imageVector = Icons.Filled.Upgrade,
-                    contentDescription = "升级",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-        },
-        text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.wrapContentHeight()
-            ) {
-                Text("版本号: 2.0.0")
-                Text(
-                    text = "更新内容:",
-                    fontWeight = FontWeight.Bold
-                )
-                Text("• 修复了已知bug")
-                Text("• 优化了应用性能")
-                Text("• 新增了多项功能")
-                Text("• 提升了用户体验")
-            }
-        },
-        confirmButton = {
-            Button(onClick = onUpdate) {
-                Text("立即更新")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("稍后再说")
-            }
-        },
-        shape = RoundedCornerShape(8.dp)
-    )
 }
 
 /**

@@ -23,6 +23,7 @@ android {
 
 dependencies {
     api(projects.libs.common)
+    api(libs.blankj.utilcodex)
     api(platform(libs.androidx.compose.bom))
     api(libs.bundles.compose.ui)
     api(libs.bundles.compose.lifecycle)
