@@ -2,12 +2,13 @@ package com.zqlq.composewan.ui.home.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.zqlq.composewan.R
 import com.zqlq.composewan.ui.home.usecase.HomeUseCase
 import com.zqlq.composewan.ui.home.viewmodel.contract.HomeEvent
 import com.zqlq.composewan.ui.home.viewmodel.contract.HomeIntent
 import com.zqlq.composewan.ui.home.viewmodel.contract.HomeUiState
+import com.zqlq.network.ApiException
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +30,8 @@ class HomeViewModel(
     private val _events = Channel<HomeEvent>(Channel.BUFFERED)
     val events: Flow<HomeEvent> = _events.receiveAsFlow()
 
+    private var nextPage = 0
+
     init {
         handleIntent(HomeIntent.LoadData)
     }
@@ -49,10 +52,16 @@ class HomeViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             runCatching {
-                useCase.loadBanners() to useCase.loadArticles()
-            }.onSuccess { (banners, articles) ->
+                useCase.loadBanners() to useCase.loadArticles(page = 0)
+            }.onSuccess { (banners, page) ->
+                nextPage = 1
                 _uiState.update {
-                    it.copy(banners = banners, articles = articles, isLoading = false)
+                    it.copy(
+                        banners = banners,
+                        articles = page.articles,
+                        isLoading = false,
+                        hasMore = !page.over,
+                    )
                 }
             }.onFailure { e ->
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
@@ -63,16 +72,16 @@ class HomeViewModel(
     private fun refresh() {
         viewModelScope.launch {
             _uiState.update { it.copy(isRefreshing = true, error = null) }
-            delay(1000)
             runCatching {
-                useCase.loadBanners() to useCase.loadArticles()
-            }.onSuccess { (banners, articles) ->
+                useCase.loadBanners() to useCase.loadArticles(page = 0)
+            }.onSuccess { (banners, page) ->
+                nextPage = 1
                 _uiState.update {
                     it.copy(
                         banners = banners,
-                        articles = articles,
+                        articles = page.articles,
                         isRefreshing = false,
-                        hasMore = true,
+                        hasMore = !page.over,
                     )
                 }
             }.onFailure { e ->
@@ -87,13 +96,14 @@ class HomeViewModel(
             if (current.isLoading || !current.hasMore) return@launch
             _uiState.update { it.copy(isLoading = true) }
             runCatching {
-                useCase.loadArticles(idOffset = current.articles.size)
-            }.onSuccess { moreArticles ->
+                useCase.loadArticles(page = nextPage)
+            }.onSuccess { page ->
+                nextPage += 1
                 _uiState.update {
                     it.copy(
-                        articles = it.articles + moreArticles,
+                        articles = it.articles + page.articles,
                         isLoading = false,
-                        hasMore = it.articles.size + moreArticles.size < 100,
+                        hasMore = !page.over,
                     )
                 }
             }.onFailure {
@@ -118,13 +128,32 @@ class HomeViewModel(
         articleId: Int,
         isCollect: Boolean,
     ) {
-        _uiState.update { state ->
-            state.copy(
-                articles =
-                    state.articles.map { article ->
-                        if (article.id == articleId) article.copy(isCollect = !isCollect) else article
-                    },
-            )
+        viewModelScope.launch {
+            runCatching {
+                if (isCollect) {
+                    useCase.uncollect(articleId)
+                } else {
+                    useCase.collect(articleId)
+                }
+            }.onSuccess {
+                _uiState.update { state ->
+                    state.copy(
+                        articles =
+                            state.articles.map { article ->
+                                if (article.id == articleId) article.copy(isCollect = !isCollect) else article
+                            },
+                    )
+                }
+            }.onFailure { e ->
+                _events.send(e.toMessageEvent())
+            }
         }
     }
+
+    private fun Throwable.toMessageEvent(): HomeEvent =
+        if (this is ApiException && isNotLoggedIn) {
+            HomeEvent.ShowMessageRes(R.string.please_login)
+        } else {
+            HomeEvent.ShowMessage(message ?: "")
+        }
 }

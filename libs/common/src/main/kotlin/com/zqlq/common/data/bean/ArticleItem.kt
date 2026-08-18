@@ -37,6 +37,7 @@ import kotlinx.serialization.Serializable
  * @property userId 用户ID
  * @property visible 可见性
  * @property zan 点赞数
+ * @property originId 收藏列表中的原文 ID，未收藏接口为 -1
  */
 @Serializable
 data class ArticleItem(
@@ -72,7 +73,8 @@ data class ArticleItem(
     val type: Int = 0,
     val userId: Int = 0,
     val visible: Int = 0,
-    val zan: Int = 0
+    val zan: Int = 0,
+    val originId: Int = -1,
 )
 
 /**

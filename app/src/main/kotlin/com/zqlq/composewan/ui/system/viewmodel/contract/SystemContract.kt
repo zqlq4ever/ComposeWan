@@ -53,6 +53,7 @@ data class SystemDetailUiState(
     val selectedChildId: Int = 0,
     val articles: List<ArticleItem> = emptyList(),
     val isLoading: Boolean = false,
+    val hasMore: Boolean = true,
     val error: String? = null,
 )
 
@@ -82,5 +83,13 @@ sealed interface SystemDetailIntent {
 sealed interface SystemDetailEvent {
     data class NavigateToWebView(
         val url: String,
+    ) : SystemDetailEvent
+
+    data class ShowMessage(
+        val message: String,
+    ) : SystemDetailEvent
+
+    data class ShowMessageRes(
+        val resId: Int,
     ) : SystemDetailEvent
 }

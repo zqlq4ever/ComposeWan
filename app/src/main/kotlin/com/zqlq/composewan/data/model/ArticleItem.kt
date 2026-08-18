@@ -17,5 +17,6 @@ data class ArticleItem(
     val time: String,
     val url: String,
     val chapterName: String = "",
-    val isCollect: Boolean = false
+    val isCollect: Boolean = false,
+    val originId: Int = -1,
 )

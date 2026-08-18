@@ -42,6 +42,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import com.zqlq.common.utils.toast.ToastUtils
 import com.zqlq.composewan.R
 import com.zqlq.composewan.data.model.ArticleItem
 import com.zqlq.composewan.data.model.BannerItem
@@ -77,6 +78,8 @@ fun HomeScreen(
             when (event) {
                 is HomeEvent.NavigateToWebView -> onNavigateToWebView(event.url)
                 is HomeEvent.NavigateToSearch -> onNavigateToSearch()
+                is HomeEvent.ShowMessage -> if (event.message.isNotBlank()) ToastUtils.show(event.message)
+                is HomeEvent.ShowMessageRes -> ToastUtils.show(event.resId)
             }
         }
     }

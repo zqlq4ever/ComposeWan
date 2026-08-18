@@ -20,6 +20,9 @@
     <string name="refresh_failed">刷新失败</string>
     <string name="load_more_failed">加载更多失败</string>
     <string name="uncollect_success">取消收藏成功</string>
+    <string name="uncollect_failed">取消收藏失败</string>
+    <string name="please_login">请先登录</string>
+    <string name="wan_guest">玩Android用户</string>
     <string name="update_dialog_title">发现新版本</string>
     <string name="update_dialog_message">版本号: 2.0.0\n\n更新内容:\n• 修复了已知bug\n• 优化了应用性能\n• 新增了多项功能\n• 提升了用户体验</string>
     <string name="update_dialog_confirm">立即更新</string>

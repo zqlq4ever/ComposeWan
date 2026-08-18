@@ -8,7 +8,6 @@ import com.zqlq.composewan.ui.login.viewmodel.contract.RegisterEvent
 import com.zqlq.composewan.ui.login.viewmodel.contract.RegisterIntent
 import com.zqlq.composewan.ui.login.viewmodel.contract.RegisterUiState
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -71,16 +70,20 @@ class RegisterViewModel(
                 return@launch
             }
             _uiState.update { it.copy(isLoading = true) }
-            delay(1000)
             useCase
-                .register(username, password)
+                .register(username, password, confirmPassword)
                 .onSuccess {
                     _uiState.update { it.copy(isLoading = false) }
                     _events.send(RegisterEvent.RegisterSuccess)
                     _events.send(RegisterEvent.ShowMessageRes(R.string.register_success))
-                }.onFailure {
+                }.onFailure { e ->
                     _uiState.update { it.copy(isLoading = false) }
-                    _events.send(RegisterEvent.ShowMessageRes(R.string.register_failed))
+                    val message = e.message.orEmpty()
+                    if (message.isNotBlank() && message != "empty") {
+                        _events.send(RegisterEvent.ShowMessage(message))
+                    } else {
+                        _events.send(RegisterEvent.ShowMessageRes(R.string.register_failed))
+                    }
                 }
         }
     }

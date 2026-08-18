@@ -12,7 +12,7 @@ import org.koin.dsl.module
  */
 val loginModule: Module =
     module {
-        single { LoginUseCase() }
+        single { LoginUseCase(repository = get()) }
         viewModel { LoginViewModel(useCase = get()) }
         viewModel { RegisterViewModel(useCase = get()) }
     }

@@ -43,4 +43,8 @@ sealed interface CollectEvent {
     data class ShowMessageRes(
         val resId: Int,
     ) : CollectEvent
+
+    data class ShowMessage(
+        val message: String,
+    ) : CollectEvent
 }

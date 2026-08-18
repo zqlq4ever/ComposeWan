@@ -68,6 +68,12 @@ fun CollectScreen(
                 is CollectEvent.ShowMessageRes -> {
                     ToastUtils.show(event.resId)
                 }
+
+                is CollectEvent.ShowMessage -> {
+                    if (event.message.isNotBlank()) {
+                        ToastUtils.show(event.message)
+                    }
+                }
             }
         }
     }

@@ -64,8 +64,8 @@ class SearchViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             runCatching { useCase.search(query) }
-                .onSuccess { results ->
-                    _uiState.update { it.copy(searchResults = results, isLoading = false) }
+                .onSuccess { page ->
+                    _uiState.update { it.copy(searchResults = page.articles, isLoading = false) }
                 }.onFailure { e ->
                     _uiState.update { it.copy(isLoading = false, error = e.message) }
                 }

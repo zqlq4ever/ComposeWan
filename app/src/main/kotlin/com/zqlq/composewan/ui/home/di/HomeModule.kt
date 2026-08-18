@@ -11,6 +11,6 @@ import org.koin.dsl.module
  */
 val homeModule: Module =
     module {
-        single { HomeUseCase() }
+        single { HomeUseCase(repository = get()) }
         viewModel { HomeViewModel(useCase = get()) }
     }

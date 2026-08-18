@@ -13,7 +13,7 @@ import org.koin.dsl.module
  */
 val systemModule: Module =
     module {
-        single { SystemUseCase() }
+        single { SystemUseCase(repository = get()) }
         viewModel { SystemViewModel(useCase = get()) }
         viewModel { params ->
             SystemDetailViewModel(

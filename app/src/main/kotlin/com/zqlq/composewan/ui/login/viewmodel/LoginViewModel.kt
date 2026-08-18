@@ -8,7 +8,6 @@ import com.zqlq.composewan.ui.login.viewmodel.contract.LoginEvent
 import com.zqlq.composewan.ui.login.viewmodel.contract.LoginIntent
 import com.zqlq.composewan.ui.login.viewmodel.contract.LoginUiState
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -51,16 +50,20 @@ class LoginViewModel(
                 return@launch
             }
             _uiState.update { it.copy(isLoading = true) }
-            delay(1000)
             useCase
                 .login(username, password)
                 .onSuccess {
                     _uiState.update { it.copy(isLoading = false) }
                     _events.send(LoginEvent.LoginSuccess)
                     _events.send(LoginEvent.ShowMessageRes(R.string.login_success))
-                }.onFailure {
+                }.onFailure { e ->
                     _uiState.update { it.copy(isLoading = false) }
-                    _events.send(LoginEvent.ShowMessageRes(R.string.login_failed))
+                    val message = e.message.orEmpty()
+                    if (message.isNotBlank() && message != "empty") {
+                        _events.send(LoginEvent.ShowMessage(message))
+                    } else {
+                        _events.send(LoginEvent.ShowMessageRes(R.string.login_failed))
+                    }
                 }
         }
     }

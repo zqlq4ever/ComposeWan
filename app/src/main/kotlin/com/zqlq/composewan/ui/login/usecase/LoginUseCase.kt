@@ -1,26 +1,33 @@
 package com.zqlq.composewan.ui.login.usecase
 
-/**
- * 登录/注册用例。本阶段仅模拟成功。
- */
-class LoginUseCase {
+import com.zqlq.common.utils.session.UserSession
+import com.zqlq.network.WanRepository
+
+/** 登录/注册用例。 */
+class LoginUseCase(
+    private val repository: WanRepository,
+) {
     suspend fun login(
         username: String,
         password: String,
-    ): Result<Unit> {
-        if (username.isBlank() || password.isBlank()) {
-            return Result.failure(IllegalArgumentException("empty"))
+    ): Result<Unit> =
+        runCatching {
+            if (username.isBlank() || password.isBlank()) {
+                error("empty")
+            }
+            val user = repository.login(username, password)
+            UserSession.saveUsername(user.nickname?.takeIf { it.isNotBlank() } ?: user.username.orEmpty())
         }
-        return Result.success(Unit)
-    }
 
     suspend fun register(
         username: String,
         password: String,
-    ): Result<Unit> {
-        if (username.isBlank() || password.isBlank()) {
-            return Result.failure(IllegalArgumentException("empty"))
+        repassword: String,
+    ): Result<Unit> =
+        runCatching {
+            if (username.isBlank() || password.isBlank()) {
+                error("empty")
+            }
+            repository.register(username, password, repassword)
         }
-        return Result.success(Unit)
-    }
 }

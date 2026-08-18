@@ -82,6 +82,12 @@ fun RegisterScreen(
                 is RegisterEvent.ShowMessageRes -> {
                     ToastUtils.show(event.resId)
                 }
+
+                is RegisterEvent.ShowMessage -> {
+                    if (event.message.isNotBlank()) {
+                        ToastUtils.show(event.message)
+                    }
+                }
             }
         }
     }

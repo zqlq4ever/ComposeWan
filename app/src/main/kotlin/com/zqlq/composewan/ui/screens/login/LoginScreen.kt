@@ -88,6 +88,12 @@ fun LoginScreen(
                 is LoginEvent.ShowMessageRes -> {
                     ToastUtils.show(event.resId)
                 }
+
+                is LoginEvent.ShowMessage -> {
+                    if (event.message.isNotBlank()) {
+                        ToastUtils.show(event.message)
+                    }
+                }
             }
         }
     }

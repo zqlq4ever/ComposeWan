@@ -6,18 +6,23 @@ import com.zqlq.common.utils.log.LogUtils
 import com.zqlq.common.utils.storage.MMKVUtils
 import com.zqlq.common.utils.toast.ToastUtils
 import com.zqlq.composewan.di.appModules
+import com.zqlq.network.AndroidNetworkClient
+import com.zqlq.network.NetworkConfig
+import com.zqlq.network.NetworkManager
+import com.zqlq.network.WanPaths
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.GlobalContext.startKoin
 
 /**
  * 全局 Application
  */
-class Application : Application() {
+class App : Application() {
     override fun onCreate() {
         super.onCreate()
         initToast()
         initLog()
         initMMKV()
+        initNetwork()
         initKoin()
     }
 
@@ -45,12 +50,20 @@ class Application : Application() {
         MMKVUtils.init(this)
     }
 
+    /** 初始化玩 Android 网络客户端（Cookie 依赖 MMKV）。 */
+    private fun initNetwork() {
+        NetworkManager.initialize(
+            client = AndroidNetworkClient.create(),
+            config = NetworkConfig(baseUrl = WanPaths.BASE_URL, debug = BuildConfig.DEBUG),
+        )
+    }
+
     /**
      * 初始化 Koin
      */
     private fun initKoin() {
         startKoin {
-            androidContext(this@Application)
+            androidContext(this@App)
             modules(appModules)
         }
     }

@@ -50,4 +50,12 @@ sealed interface HomeEvent {
     ) : HomeEvent
 
     data object NavigateToSearch : HomeEvent
+
+    data class ShowMessage(
+        val message: String,
+    ) : HomeEvent
+
+    data class ShowMessageRes(
+        val resId: Int,
+    ) : HomeEvent
 }

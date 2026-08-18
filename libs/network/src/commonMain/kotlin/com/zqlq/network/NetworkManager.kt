@@ -3,70 +3,112 @@ package com.zqlq.network
 import com.zqlq.common.data.response.BaseResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
+import io.ktor.client.request.parameter
 import io.ktor.client.request.url
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
+import io.ktor.http.parameters
+import kotlinx.serialization.json.JsonElement
 
 /**
- * 网络请求管理器
- * 支持切换baseurl，封装常用请求方法
+ * 网络请求管理器。
+ * GET / 表单 POST 均按玩 Android 的 `{errorCode, errorMsg, data}` 解析。
  */
-class NetworkManager private constructor(
-    private val client: HttpClient,
-    private var config: NetworkConfig
+class NetworkManager(
+    val client: HttpClient,
+    val config: NetworkConfig,
 ) {
-    /**
-     * 配置网络请求
-     */
     fun configure(block: NetworkConfig.() -> Unit) {
         config.apply(block)
     }
 
-    /**
-     * 发送GET请求
-     * @param path 请求路径
-     * @return BaseResponse<T>
-     */
-    suspend fun <T> get(path: String): BaseResponse<T> {
-        return client.get {
-            url("${config.baseUrl}$path")
-        }.body()
+    suspend inline fun <reified T> get(
+        path: String,
+        query: Map<String, Any?> = emptyMap(),
+    ): T {
+        val response: BaseResponse<T> =
+            client
+                .get {
+                    url("${config.baseUrl}$path")
+                    query.forEach { (key, value) ->
+                        if (value != null) parameter(key, value.toString())
+                    }
+                }.body()
+        return response.requireData()
     }
 
-    /**
-     * 发送POST请求
-     * @param path 请求路径
-     * @param body 请求体
-     * @return BaseResponse<T>
-     */
-    suspend fun <T> post(path: String, body: Any): BaseResponse<T> {
-        return client.post {
-            url("${config.baseUrl}$path")
-            contentType(ContentType.Application.Json)
-            setBody(body)
-        }.body()
+    /** GET：成功即可，允许 data 为空。 */
+    suspend inline fun <reified T> getAllowEmpty(
+        path: String,
+        query: Map<String, Any?> = emptyMap(),
+    ): T? {
+        val response: BaseResponse<T> =
+            client
+                .get {
+                    url("${config.baseUrl}$path")
+                    query.forEach { (key, value) ->
+                        if (value != null) parameter(key, value.toString())
+                    }
+                }.body()
+        response.ensureSuccess()
+        return response.data
+    }
+
+    /** 表单 POST，响应 data 可为空（收藏等接口）。 */
+    suspend fun postForm(
+        path: String,
+        form: Map<String, String> = emptyMap(),
+        query: Map<String, Any?> = emptyMap(),
+    ) {
+        val response: BaseResponse<JsonElement?> =
+            client
+                .submitForm(
+                    url = "${config.baseUrl}$path",
+                    formParameters =
+                        parameters {
+                            form.forEach { (key, value) -> append(key, value) }
+                        },
+                ) {
+                    query.forEach { (key, value) ->
+                        if (value != null) parameter(key, value.toString())
+                    }
+                }.body()
+        response.ensureSuccess()
+    }
+
+    /** 表单 POST 并解析 data。 */
+    suspend inline fun <reified T> postFormData(
+        path: String,
+        form: Map<String, String> = emptyMap(),
+        query: Map<String, Any?> = emptyMap(),
+    ): T {
+        val response: BaseResponse<T> =
+            client
+                .submitForm(
+                    url = "${config.baseUrl}$path",
+                    formParameters =
+                        parameters {
+                            form.forEach { (key, value) -> append(key, value) }
+                        },
+                ) {
+                    query.forEach { (key, value) ->
+                        if (value != null) parameter(key, value.toString())
+                    }
+                }.body()
+        return response.requireData()
     }
 
     companion object {
         private var instance: NetworkManager? = null
 
-        /**
-         * 初始化网络管理器
-         * @param client HttpClient实例
-         * @param config 网络配置
-         */
-        fun initialize(client: HttpClient, config: NetworkConfig) {
+        fun initialize(
+            client: HttpClient,
+            config: NetworkConfig,
+        ) {
             instance = NetworkManager(client, config)
         }
 
-        /**
-         * 获取网络管理器实例
-         */
-        fun getInstance(): NetworkManager {
-            return instance ?: throw IllegalStateException("NetworkManager has not been initialized")
-        }
+        fun getInstance(): NetworkManager =
+            instance ?: throw IllegalStateException("NetworkManager has not been initialized")
     }
 }

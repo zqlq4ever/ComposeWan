@@ -12,6 +12,7 @@ import com.zqlq.composewan.ui.system.di.systemModule
  */
 val appModules =
     listOf(
+        networkModule,
         homeModule,
         hotModule,
         systemModule,

@@ -38,6 +38,10 @@ sealed interface LoginEvent {
     data class ShowMessageRes(
         val resId: Int,
     ) : LoginEvent
+
+    data class ShowMessage(
+        val message: String,
+    ) : LoginEvent
 }
 
 /**
@@ -78,5 +82,9 @@ sealed interface RegisterEvent {
 
     data class ShowMessageRes(
         val resId: Int,
+    ) : RegisterEvent
+
+    data class ShowMessage(
+        val message: String,
     ) : RegisterEvent
 }

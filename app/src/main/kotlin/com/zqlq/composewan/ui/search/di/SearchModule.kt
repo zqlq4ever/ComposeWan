@@ -11,6 +11,6 @@ import org.koin.dsl.module
  */
 val searchModule: Module =
     module {
-        single { SearchUseCase() }
+        single { SearchUseCase(repository = get()) }
         viewModel { SearchViewModel(useCase = get()) }
     }

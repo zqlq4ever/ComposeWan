@@ -2,11 +2,13 @@ package com.zqlq.composewan.ui.system.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.zqlq.composewan.R
 import com.zqlq.composewan.data.model.SystemChild
 import com.zqlq.composewan.ui.system.usecase.SystemUseCase
 import com.zqlq.composewan.ui.system.viewmodel.contract.SystemDetailEvent
 import com.zqlq.composewan.ui.system.viewmodel.contract.SystemDetailIntent
 import com.zqlq.composewan.ui.system.viewmodel.contract.SystemDetailUiState
+import com.zqlq.network.ApiException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,6 +42,8 @@ class SystemDetailViewModel(
     private val _events = Channel<SystemDetailEvent>(Channel.BUFFERED)
     val events: Flow<SystemDetailEvent> = _events.receiveAsFlow()
 
+    private var nextPage = 0
+
     init {
         loadArticles()
     }
@@ -54,18 +58,29 @@ class SystemDetailViewModel(
     }
 
     private fun selectChild(childId: Int) {
-        _uiState.update { it.copy(selectedChildId = childId, articles = emptyList()) }
+        nextPage = 0
+        _uiState.update {
+            it.copy(selectedChildId = childId, articles = emptyList(), hasMore = true)
+        }
         loadArticles()
     }
 
     private fun loadArticles() {
         viewModelScope.launch {
+            val cid = _uiState.value.selectedChildId
+            if (cid == 0) return@launch
             _uiState.update { it.copy(isLoading = true, error = null) }
             runCatching {
-                val childName = selectedChildName()
-                useCase.loadArticles(childName)
-            }.onSuccess { articles ->
-                _uiState.update { it.copy(articles = articles, isLoading = false) }
+                useCase.loadArticles(cid = cid, page = 0)
+            }.onSuccess { page ->
+                nextPage = 1
+                _uiState.update {
+                    it.copy(
+                        articles = page.articles,
+                        isLoading = false,
+                        hasMore = !page.over,
+                    )
+                }
             }.onFailure { e ->
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
@@ -74,13 +89,21 @@ class SystemDetailViewModel(
 
     private fun loadMoreArticles() {
         viewModelScope.launch {
+            val current = _uiState.value
+            if (current.isLoading || !current.hasMore) return@launch
+            val cid = current.selectedChildId
+            if (cid == 0) return@launch
             _uiState.update { it.copy(isLoading = true) }
             runCatching {
-                val childName = selectedChildName()
-                useCase.loadArticles(childName, idOffset = _uiState.value.articles.size)
-            }.onSuccess { moreArticles ->
+                useCase.loadArticles(cid = cid, page = nextPage)
+            }.onSuccess { page ->
+                nextPage += 1
                 _uiState.update {
-                    it.copy(articles = it.articles + moreArticles, isLoading = false)
+                    it.copy(
+                        articles = it.articles + page.articles,
+                        isLoading = false,
+                        hasMore = !page.over,
+                    )
                 }
             }.onFailure {
                 _uiState.update { it.copy(isLoading = false) }
@@ -96,19 +119,32 @@ class SystemDetailViewModel(
         articleId: Int,
         isCollect: Boolean,
     ) {
-        _uiState.update { state ->
-            state.copy(
-                articles =
-                    state.articles.map { article ->
-                        if (article.id == articleId) article.copy(isCollect = !isCollect) else article
-                    },
-            )
+        viewModelScope.launch {
+            runCatching {
+                if (isCollect) {
+                    useCase.uncollect(articleId)
+                } else {
+                    useCase.collect(articleId)
+                }
+            }.onSuccess {
+                _uiState.update { state ->
+                    state.copy(
+                        articles =
+                            state.articles.map { article ->
+                                if (article.id == articleId) article.copy(isCollect = !isCollect) else article
+                            },
+                    )
+                }
+            }.onFailure { e ->
+                _events.send(e.toMessageEvent())
+            }
         }
     }
 
-    private fun selectedChildName(): String =
-        _uiState.value.children
-            .find { it.id == _uiState.value.selectedChildId }
-            ?.name
-            .orEmpty()
+    private fun Throwable.toMessageEvent(): SystemDetailEvent =
+        if (this is ApiException && isNotLoggedIn) {
+            SystemDetailEvent.ShowMessageRes(R.string.please_login)
+        } else {
+            SystemDetailEvent.ShowMessage(message ?: "")
+        }
 }

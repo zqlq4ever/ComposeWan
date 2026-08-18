@@ -8,8 +8,8 @@ import com.zqlq.composewan.ui.collect.usecase.CollectUseCase
 import com.zqlq.composewan.ui.collect.viewmodel.contract.CollectEvent
 import com.zqlq.composewan.ui.collect.viewmodel.contract.CollectIntent
 import com.zqlq.composewan.ui.collect.viewmodel.contract.CollectUiState
+import com.zqlq.network.ApiException
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +30,8 @@ class CollectViewModel(
     private val _events = Channel<CollectEvent>(Channel.BUFFERED)
     val events: Flow<CollectEvent> = _events.receiveAsFlow()
 
+    private var nextPage = 0
+
     init {
         handleIntent(CollectIntent.LoadCollectList)
     }
@@ -48,15 +50,19 @@ class CollectViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             runCatching {
-                delay(1000)
-                useCase.loadCollectArticles()
-            }.onSuccess { articles ->
+                useCase.loadCollectArticles(page = 0)
+            }.onSuccess { page ->
+                nextPage = 1
                 _uiState.update {
-                    it.copy(articles = articles, isLoading = false, hasMore = articles.size < 20)
+                    it.copy(
+                        articles = page.articles,
+                        isLoading = false,
+                        hasMore = !page.over,
+                    )
                 }
-            }.onFailure {
+            }.onFailure { e ->
                 _uiState.update { it.copy(isLoading = false) }
-                _events.send(CollectEvent.ShowMessageRes(R.string.load_failed))
+                _events.send(e.toMessageEvent(R.string.load_failed))
             }
         }
     }
@@ -64,15 +70,19 @@ class CollectViewModel(
     private fun refreshCollectList() {
         viewModelScope.launch {
             _uiState.update { it.copy(isRefreshing = true) }
-            delay(1000)
-            runCatching { useCase.loadCollectArticles() }
-                .onSuccess { articles ->
+            runCatching { useCase.loadCollectArticles(page = 0) }
+                .onSuccess { page ->
+                    nextPage = 1
                     _uiState.update {
-                        it.copy(articles = articles, isRefreshing = false, hasMore = articles.size < 20)
+                        it.copy(
+                            articles = page.articles,
+                            isRefreshing = false,
+                            hasMore = !page.over,
+                        )
                     }
-                }.onFailure {
+                }.onFailure { e ->
                     _uiState.update { it.copy(isRefreshing = false) }
-                    _events.send(CollectEvent.ShowMessageRes(R.string.refresh_failed))
+                    _events.send(e.toMessageEvent(R.string.refresh_failed))
                 }
         }
     }
@@ -81,16 +91,19 @@ class CollectViewModel(
         viewModelScope.launch {
             if (_uiState.value.isLoadingMore || !_uiState.value.hasMore) return@launch
             _uiState.update { it.copy(isLoadingMore = true) }
-            delay(1000)
-            runCatching { useCase.loadCollectArticles() }
-                .onSuccess { newArticles ->
-                    val updated = _uiState.value.articles + newArticles
+            runCatching { useCase.loadCollectArticles(page = nextPage) }
+                .onSuccess { page ->
+                    nextPage += 1
                     _uiState.update {
-                        it.copy(articles = updated, isLoadingMore = false, hasMore = updated.size < 40)
+                        it.copy(
+                            articles = it.articles + page.articles,
+                            isLoadingMore = false,
+                            hasMore = !page.over,
+                        )
                     }
-                }.onFailure {
+                }.onFailure { e ->
                     _uiState.update { it.copy(isLoadingMore = false) }
-                    _events.send(CollectEvent.ShowMessageRes(R.string.load_more_failed))
+                    _events.send(e.toMessageEvent(R.string.load_more_failed))
                 }
         }
     }
@@ -101,8 +114,20 @@ class CollectViewModel(
 
     private fun onUncollectClick(article: ArticleItem) {
         viewModelScope.launch {
-            _uiState.update { it.copy(articles = it.articles.filter { item -> item.id != article.id }) }
-            _events.send(CollectEvent.ShowMessageRes(R.string.uncollect_success))
+            runCatching { useCase.uncollect(article) }
+                .onSuccess {
+                    _uiState.update { it.copy(articles = it.articles.filter { item -> item.id != article.id }) }
+                    _events.send(CollectEvent.ShowMessageRes(R.string.uncollect_success))
+                }.onFailure { e ->
+                    _events.send(e.toMessageEvent(R.string.uncollect_failed))
+                }
         }
     }
+
+    private fun Throwable.toMessageEvent(fallbackRes: Int): CollectEvent =
+        when {
+            this is ApiException && isNotLoggedIn -> CollectEvent.ShowMessageRes(R.string.please_login)
+            this is ApiException && message.isNotBlank() -> CollectEvent.ShowMessage(message)
+            else -> CollectEvent.ShowMessageRes(fallbackRes)
+        }
 }

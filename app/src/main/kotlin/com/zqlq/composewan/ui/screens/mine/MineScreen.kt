@@ -30,6 +30,7 @@ import androidx.compose.ui.window.Dialog
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
+import com.zqlq.common.utils.session.UserSession
 import com.zqlq.common.utils.toast.ToastUtils
 import com.zqlq.compose.components.ConfirmPop
 import com.zqlq.composewan.R
@@ -157,7 +158,7 @@ private fun HeaderSection(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "玩Android用户",
+                text = UserSession.username().ifBlank { stringResource(R.string.wan_guest) },
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,

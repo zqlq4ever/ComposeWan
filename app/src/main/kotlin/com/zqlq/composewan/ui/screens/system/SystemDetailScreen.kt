@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.zqlq.common.utils.toast.ToastUtils
 import com.zqlq.composewan.data.model.ArticleItem
 import com.zqlq.composewan.data.model.SystemChild
 import com.zqlq.composewan.ui.components.ArticleItemView
@@ -78,6 +79,8 @@ fun SystemDetailScreen(
         viewModel.events.collectLatest { event ->
             when (event) {
                 is SystemDetailEvent.NavigateToWebView -> onNavigateToWebView(event.url)
+                is SystemDetailEvent.ShowMessage -> if (event.message.isNotBlank()) ToastUtils.show(event.message)
+                is SystemDetailEvent.ShowMessageRes -> ToastUtils.show(event.resId)
             }
         }
     }

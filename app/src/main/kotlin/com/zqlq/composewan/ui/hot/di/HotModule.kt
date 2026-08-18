@@ -11,6 +11,6 @@ import org.koin.dsl.module
  */
 val hotModule: Module =
     module {
-        single { HotUseCase() }
+        single { HotUseCase(repository = get()) }
         viewModel { HotViewModel(useCase = get()) }
     }
