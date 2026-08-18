@@ -7,4 +7,17 @@
     <string name="nav_mine">我的</string>
     <string name="search_hint">搜索文章</string>
     <string name="clicked_item">点击了: %s</string>
+    <string name="press_back_again_to_exit">再按一次退出应用</string>
+    <string name="please_input_username">请输入用户名</string>
+    <string name="please_input_password">请输入密码</string>
+    <string name="login_success">登录成功</string>
+    <string name="login_failed">登录失败</string>
+    <string name="password_too_short">密码长度不能少于6位</string>
+    <string name="password_not_match">两次输入的密码不一致</string>
+    <string name="register_success">注册成功</string>
+    <string name="register_failed">注册失败</string>
+    <string name="load_failed">加载失败</string>
+    <string name="refresh_failed">刷新失败</string>
+    <string name="load_more_failed">加载更多失败</string>
+    <string name="uncollect_success">取消收藏成功</string>
 </resources>

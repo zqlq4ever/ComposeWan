@@ -38,15 +38,15 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.zqlq.common.utils.toast.ToastUtils
 import com.zqlq.composewan.data.model.SystemCategory
 import com.zqlq.composewan.data.model.SystemChild
-import com.zqlq.composewan.state.system.SystemEffect
-import com.zqlq.composewan.state.system.SystemIntent
-import com.zqlq.composewan.state.system.SystemState
-import com.zqlq.composewan.viewmodel.system.SystemViewModel
+import com.zqlq.composewan.ui.system.viewmodel.SystemViewModel
+import com.zqlq.composewan.ui.system.viewmodel.contract.SystemEvent
+import com.zqlq.composewan.ui.system.viewmodel.contract.SystemIntent
+import com.zqlq.composewan.ui.system.viewmodel.contract.SystemUiState
 import kotlinx.coroutines.flow.collectLatest
+import org.koin.androidx.compose.koinViewModel
 
 /**
  * 体系屏幕
@@ -60,19 +60,19 @@ import kotlinx.coroutines.flow.collectLatest
 fun SystemScreen(
     modifier: Modifier = Modifier,
     onNavigateToSystemDetail: (String, List<SystemChild>) -> Unit = { _, _ -> },
-    viewModel: SystemViewModel = viewModel()
+    viewModel: SystemViewModel = koinViewModel(),
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        viewModel.effect.collectLatest { effect ->
-            when (effect) {
-                is SystemEffect.ShowToast -> {
-                    ToastUtils.show(effect.message)
+        viewModel.events.collectLatest { event ->
+            when (event) {
+                is SystemEvent.ShowToast -> {
+                    ToastUtils.show(event.message)
                 }
 
-                is SystemEffect.NavigateToSystemDetail -> {
-                    onNavigateToSystemDetail(effect.categoryName, effect.children)
+                is SystemEvent.NavigateToSystemDetail -> {
+                    onNavigateToSystemDetail(event.categoryName, event.children)
                 }
             }
         }
@@ -80,8 +80,8 @@ fun SystemScreen(
 
     SystemContent(
         state = state,
-        onIntent = viewModel::processIntent,
-        modifier = modifier
+        onIntent = viewModel::handleIntent,
+        modifier = modifier,
     )
 }
 
@@ -90,15 +90,15 @@ fun SystemScreen(
  */
 @Composable
 private fun SystemContent(
-    state: SystemState,
+    state: SystemUiState,
     onIntent: (SystemIntent) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     when {
         state.isLoading && state.categories.isEmpty() -> {
             Box(
                 modifier = modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 CircularProgressIndicator()
             }
@@ -107,31 +107,32 @@ private fun SystemContent(
         state.error != null && state.categories.isEmpty() -> {
             Box(
                 modifier = modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = state.error ?: "未知错误",
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
         }
 
         else -> {
             LazyColumn(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier =
+                    modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(
                     items = state.categories,
-                    key = { it.id }
+                    key = { it.id },
                 ) { category ->
                     CategoryItem(
                         category = category,
                         isExpanded = state.expandedIds.contains(category.id),
                         onToggleExpand = { onIntent(SystemIntent.ToggleExpand(category.id)) },
-                        onChildClick = { child -> onIntent(SystemIntent.ChildClick(category.name, category.children)) }
+                        onChildClick = { child -> onIntent(SystemIntent.ChildClick(category.name, category.children)) },
                     )
                 }
             }
@@ -148,57 +149,60 @@ private fun CategoryItem(
     isExpanded: Boolean,
     onToggleExpand: () -> Unit,
     onChildClick: (SystemChild) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val arrowRotation by animateFloatAsState(
         targetValue = if (isExpanded) 90f else 0f,
-        label = "arrow_rotation"
+        label = "arrow_rotation",
     )
 
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+            ),
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(
-                        indication = null, // 禁用水波纹效果
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) { onToggleExpand() }
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable(
+                            indication = null, // 禁用水波纹效果
+                            interactionSource = remember { MutableInteractionSource() },
+                        ) { onToggleExpand() }
+                        .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = category.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
 
                 Icon(
                     imageVector = Icons.Filled.KeyboardArrowRight,
                     contentDescription = if (isExpanded) "收起" else "展开",
-                    modifier = Modifier
-                        .size(24.dp)
-                        .rotate(arrowRotation),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    modifier =
+                        Modifier
+                            .size(24.dp)
+                            .rotate(arrowRotation),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
             AnimatedVisibility(
                 visible = isExpanded,
                 enter = expandVertically(),
-                exit = shrinkVertically()
+                exit = shrinkVertically(),
             ) {
                 ChildFlowRow(
                     children = category.children,
-                    onChildClick = onChildClick
+                    onChildClick = onChildClick,
                 )
             }
         }
@@ -213,19 +217,20 @@ private fun CategoryItem(
 private fun ChildFlowRow(
     children: List<SystemChild>,
     onChildClick: (SystemChild) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     FlowRow(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         children.forEach { child ->
             ChildItem(
                 child = child,
-                onClick = { onChildClick(child) }
+                onClick = { onChildClick(child) },
             )
         }
     }
@@ -238,21 +243,22 @@ private fun ChildFlowRow(
 private fun ChildItem(
     child: SystemChild,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier.wrapContentSize(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        ),
-        onClick = onClick
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            ),
+        onClick = onClick,
     ) {
         Text(
             text = child.name,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSecondaryContainer,
-            modifier = Modifier.padding(vertical = 6.dp, horizontal = 12.dp)
+            modifier = Modifier.padding(vertical = 6.dp, horizontal = 12.dp),
         )
     }
 }

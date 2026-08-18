@@ -32,9 +32,8 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.delay
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,21 +41,22 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.zqlq.composewan.R
 import com.zqlq.composewan.data.model.ArticleItem
 import com.zqlq.composewan.data.model.BannerItem
-import com.zqlq.composewan.state.home.HomeEffect
-import com.zqlq.composewan.state.home.HomeIntent
-import com.zqlq.composewan.state.home.HomeState
 import com.zqlq.composewan.ui.components.ArticleItemView
-import com.zqlq.composewan.viewmodel.home.HomeViewModel
+import com.zqlq.composewan.ui.home.viewmodel.HomeViewModel
+import com.zqlq.composewan.ui.home.viewmodel.contract.HomeEvent
+import com.zqlq.composewan.ui.home.viewmodel.contract.HomeIntent
+import com.zqlq.composewan.ui.home.viewmodel.contract.HomeUiState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import org.koin.androidx.compose.koinViewModel
 
 /**
  * 首页屏幕
- * MVI 架构：State + Intent + Effect
+ * MVI 架构：UiState + Intent + Event
  *
  * @param modifier 修饰符
  * @param onNavigateToWebView 跳转 WebView 回调
@@ -68,23 +68,23 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     onNavigateToWebView: (String) -> Unit = {},
     onNavigateToSearch: () -> Unit = {},
-    viewModel: HomeViewModel = viewModel()
+    viewModel: HomeViewModel = koinViewModel(),
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        viewModel.effect.collectLatest { effect ->
-            when (effect) {
-                is HomeEffect.NavigateToWebView -> onNavigateToWebView(effect.url)
-                is HomeEffect.NavigateToSearch -> onNavigateToSearch()
+        viewModel.events.collectLatest { event ->
+            when (event) {
+                is HomeEvent.NavigateToWebView -> onNavigateToWebView(event.url)
+                is HomeEvent.NavigateToSearch -> onNavigateToSearch()
             }
         }
     }
 
     HomeContent(
         state = state,
-        onIntent = viewModel::processIntent,
-        modifier = modifier
+        onIntent = viewModel::handleIntent,
+        modifier = modifier,
     )
 }
 
@@ -93,56 +93,60 @@ fun HomeScreen(
  */
 @Composable
 private fun HomeContent(
-    state: HomeState,
+    state: HomeUiState,
     onIntent: (HomeIntent) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         SearchBar(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            onClick = { onIntent(HomeIntent.SearchClick) }
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            onClick = { onIntent(HomeIntent.SearchClick) },
         )
 
         when {
             state.isLoading && state.banners.isEmpty() -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator()
                 }
             }
+
             state.error != null && state.banners.isEmpty() -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = state.error,
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.error,
                     )
                 }
             }
+
             else -> {
                 val pullToRefreshState = rememberPullToRefreshState()
-                
+
                 PullToRefreshBox(
                     state = pullToRefreshState,
                     isRefreshing = state.isRefreshing,
                     onRefresh = { onIntent(HomeIntent.Refresh) },
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f),
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .weight(1f),
                     indicator = {
                         Indicator(
                             modifier = Modifier.align(Alignment.TopCenter),
                             isRefreshing = state.isRefreshing,
                             color = MaterialTheme.colorScheme.primary,
-                            state = pullToRefreshState
+                            state = pullToRefreshState,
                         )
-                    }
+                    },
                 ) {
                     ArticleList(
                         banners = state.banners,
@@ -153,7 +157,7 @@ private fun HomeContent(
                         onArticleClick = { url -> onIntent(HomeIntent.ArticleClick(url)) },
                         onCollectClick = { id, isCollect -> onIntent(HomeIntent.CollectClick(id, isCollect)) },
                         onLoadMore = { onIntent(HomeIntent.LoadMore) },
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
                     )
                 }
             }
@@ -167,33 +171,35 @@ private fun HomeContent(
 @Composable
 private fun SearchBar(
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        ),
-        onClick = onClick
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            ),
+        onClick = onClick,
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
             Text(
                 text = stringResource(R.string.search_hint),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 8.dp)
+                modifier = Modifier.padding(start = 8.dp),
             )
         }
     }
@@ -208,7 +214,7 @@ private fun BannerPager(
     items: List<BannerItem>,
     onBannerClick: (String) -> Unit,
     modifier: Modifier = Modifier,
-    autoScrollInterval: Long = 3000L // 自动轮播间隔，默认3秒
+    autoScrollInterval: Long = 3000L, // 自动轮播间隔，默认3秒
 ) {
     val itemCount = items.size
     if (itemCount <= 1) {
@@ -218,13 +224,13 @@ private fun BannerPager(
                 Card(
                     modifier = Modifier.fillMaxSize(),
                     shape = RoundedCornerShape(12.dp),
-                    onClick = { onBannerClick(banner.url) }
+                    onClick = { onBannerClick(banner.url) },
                 ) {
                     AsyncImage(
                         model = banner.imageUrl,
                         contentDescription = banner.title,
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
                     )
                 }
             }
@@ -233,12 +239,13 @@ private fun BannerPager(
     }
 
     // 使用 Int.MAX_VALUE 实现伪无限循环
-    val pagerState = rememberPagerState(
-        initialPage = Int.MAX_VALUE / 2,
-        pageCount = { Int.MAX_VALUE }
-    )
+    val pagerState =
+        rememberPagerState(
+            initialPage = Int.MAX_VALUE / 2,
+            pageCount = { Int.MAX_VALUE },
+        )
     val coroutineScope = rememberCoroutineScope()
-    
+
     // 自动轮播逻辑
     LaunchedEffect(Unit) {
         while (true) {
@@ -252,7 +259,7 @@ private fun BannerPager(
             state = pagerState,
             modifier = Modifier.clip(RoundedCornerShape(12.dp)),
             userScrollEnabled = true, // 允许手动滑动
-            pageSpacing = 6.dp // 轮播图之间的间距
+            pageSpacing = 6.dp, // 轮播图之间的间距
         ) {
             // 取模获取实际图片索引
             val actualIndex = it % itemCount
@@ -260,13 +267,13 @@ private fun BannerPager(
             Card(
                 modifier = Modifier.fillMaxSize(),
                 shape = RoundedCornerShape(12.dp),
-                onClick = { onBannerClick(banner.url) }
+                onClick = { onBannerClick(banner.url) },
             ) {
                 AsyncImage(
                     model = banner.imageUrl,
                     contentDescription = banner.title,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
                 )
             }
         }
@@ -274,11 +281,12 @@ private fun BannerPager(
         // 华丽的指示器
         val currentActualPage = pagerState.currentPage % itemCount
         BannerIndicator(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 16.dp),
+            modifier =
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 16.dp),
             pageCount = itemCount,
-            currentPage = currentActualPage
+            currentPage = currentActualPage,
         )
     }
 }
@@ -292,31 +300,34 @@ private fun BannerPager(
 private fun BannerIndicator(
     modifier: Modifier = Modifier,
     pageCount: Int,
-    currentPage: Int
+    currentPage: Int,
 ) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         repeat(pageCount) { pageIndex ->
             val isSelected = pageIndex == currentPage
-            
+
             Box(
-                modifier = Modifier
-                    .background(
-                        color = if (isSelected) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                        },
-                        shape = RoundedCornerShape(10.dp)
-                    )
+                modifier =
+                    Modifier
+                        .background(
+                            color =
+                                if (isSelected) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                                },
+                            shape = RoundedCornerShape(10.dp),
+                        ),
             ) {
                 Spacer(
-                    modifier = Modifier
-                        .height(6.dp)
-                        .width(if (isSelected) 24.dp else 6.dp)
+                    modifier =
+                        Modifier
+                            .height(6.dp)
+                            .width(if (isSelected) 24.dp else 6.dp),
                 )
             }
         }
@@ -336,7 +347,7 @@ private fun ArticleList(
     onArticleClick: (String) -> Unit,
     onCollectClick: (Int, Boolean) -> Unit,
     onLoadMore: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
 
@@ -355,17 +366,18 @@ private fun ArticleList(
 
     LazyColumn(
         modifier = modifier,
-        state = listState
+        state = listState,
     ) {
         // 将Banner作为列表的第一个item
         item {
             BannerPager(
                 items = banners,
                 onBannerClick = onBannerClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .padding(horizontal = 16.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .padding(horizontal = 16.dp),
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -376,7 +388,7 @@ private fun ArticleList(
                 article = article,
                 onClick = { onArticleClick(article.url) },
                 onCollectClick = { onCollectClick(article.id, article.isCollect) },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -384,18 +396,17 @@ private fun ArticleList(
         if (isLoading) {
             item {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                    contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(24.dp),
                     )
                 }
             }
         }
     }
 }
-
-

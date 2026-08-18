@@ -1,23 +1,17 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-    id("com.android.kotlin.multiplatform.library")
+    alias(libs.plugins.android.kotlin.multiplatform.library)
 }
 
 kotlin {
     android {
-        compileSdk = 36
+        compileSdk = 37
         namespace = "com.zqlq.network"
     }
 
     sourceSets {
         commonMain.dependencies {
-            // Ktor
-            api(libs.ktor.client.core)
-            api(libs.ktor.client.cio)
-            api(libs.ktor.client.content.negotiation)
-            api(libs.ktor.serialization.kotlinx.json)
-            api(libs.ktor.client.logging)
-            // Common module
+            api(libs.bundles.ktor)
             api(projects.libs.common)
         }
         androidMain.dependencies {

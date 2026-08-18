@@ -5,5 +5,19 @@
     <string name="nav_hot">Hot</string>
     <string name="nav_system">System</string>
     <string name="nav_mine">Mine</string>
+    <string name="search_hint">Search articles</string>
     <string name="clicked_item">Clicked: %s</string>
+    <string name="press_back_again_to_exit">Press back again to exit</string>
+    <string name="please_input_username">Please enter username</string>
+    <string name="please_input_password">Please enter password</string>
+    <string name="login_success">Signed in</string>
+    <string name="login_failed">Sign in failed</string>
+    <string name="password_too_short">Password must be at least 6 characters</string>
+    <string name="password_not_match">Passwords do not match</string>
+    <string name="register_success">Registered</string>
+    <string name="register_failed">Registration failed</string>
+    <string name="load_failed">Failed to load</string>
+    <string name="refresh_failed">Failed to refresh</string>
+    <string name="load_more_failed">Failed to load more</string>
+    <string name="uncollect_success">Removed from favorites</string>
 </resources>

@@ -13,8 +13,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import com.zqlq.common.ui.theme.ComposeWanTheme
 import com.zqlq.common.utils.toast.ToastUtils
+import com.zqlq.compose.ui.theme.ComposeWanTheme
 import com.zqlq.composewan.ui.navigation.MainNavigation
 
 /**
@@ -22,7 +22,6 @@ import com.zqlq.composewan.ui.navigation.MainNavigation
  * 负责初始化 UI 并设置边缘到边缘显示模式
  */
 class MainActivity : ComponentActivity() {
-
     /**
      * Activity 创建时的初始化
      * @param savedInstanceState 保存的实例状态
@@ -53,7 +52,7 @@ fun AppContent() {
         if (currentTime - lastBackPressTime < backPressInterval) {
             (context as? ComponentActivity)?.finish()
         } else {
-            ToastUtils.show("再按一次退出应用")
+            ToastUtils.show(R.string.press_back_again_to_exit)
             lastBackPressTime = currentTime
         }
     }

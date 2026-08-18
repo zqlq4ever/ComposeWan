@@ -2,7 +2,6 @@ package com.zqlq.composewan.ui.screens.collect
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,11 +28,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.zqlq.common.utils.toast.ToastUtils
+import com.zqlq.composewan.ui.collect.viewmodel.CollectViewModel
+import com.zqlq.composewan.ui.collect.viewmodel.contract.CollectEvent
+import com.zqlq.composewan.ui.collect.viewmodel.contract.CollectIntent
 import com.zqlq.composewan.ui.components.ArticleItemView
-import com.zqlq.composewan.state.collect.CollectIntent
-import com.zqlq.composewan.state.collect.CollectState
-import com.zqlq.composewan.viewmodel.collect.CollectViewModel
+import org.koin.androidx.compose.koinViewModel
 
 /**
  * 收藏页面
@@ -47,10 +47,10 @@ import com.zqlq.composewan.viewmodel.collect.CollectViewModel
 fun CollectScreen(
     onBack: () -> Unit,
     onNavigateToWebView: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val viewModel: CollectViewModel = viewModel()
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val viewModel: CollectViewModel = koinViewModel()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     // 系统返回键处理
     BackHandler {
@@ -59,13 +59,14 @@ fun CollectScreen(
 
     // 处理副作用
     LaunchedEffect(Unit) {
-        viewModel.effect.collect {effect ->
-            when (effect) {
-                is com.zqlq.composewan.state.collect.CollectEffect.NavigateToWebView -> {
-                    onNavigateToWebView(effect.url)
+        viewModel.events.collect { event ->
+            when (event) {
+                is CollectEvent.NavigateToWebView -> {
+                    onNavigateToWebView(event.url)
                 }
-                is com.zqlq.composewan.state.collect.CollectEffect.ShowMessage -> {
-                    // 这里可以添加消息提示，例如Toast或Snackbar
+
+                is CollectEvent.ShowMessageRes -> {
+                    ToastUtils.show(event.resId)
                 }
             }
         }
@@ -77,8 +78,11 @@ fun CollectScreen(
 
     // 监听滚动到底部，加载更多
     LaunchedEffect(lazyListState.isScrollInProgress) {
-        if (lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index == state.articles.size - 1) {
-            viewModel.processIntent(CollectIntent.LoadMoreCollectList)
+        if (lazyListState.layoutInfo.visibleItemsInfo
+                .lastOrNull()
+                ?.index == state.articles.size - 1
+        ) {
+            viewModel.handleIntent(CollectIntent.LoadMoreCollectList)
         }
     }
 
@@ -91,38 +95,40 @@ fun CollectScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回"
+                            contentDescription = "返回",
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors()
+                colors = TopAppBarDefaults.topAppBarColors(),
             )
-        }
-    ) {paddingValues ->
+        },
+    ) { paddingValues ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
         ) {
             PullToRefreshBox(
                 state = pullToRefreshState,
-                onRefresh = { viewModel.processIntent(CollectIntent.RefreshCollectList) },
+                onRefresh = { viewModel.handleIntent(CollectIntent.RefreshCollectList) },
                 isRefreshing = state.isRefreshing,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             ) {
                 LazyColumn(
                     state = lazyListState,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     // 收藏文章列表
                     items(state.articles) {
                         ArticleItemView(
                             article = it,
-                            onClick = { viewModel.processIntent(CollectIntent.OnArticleClick(it)) },
-                            onCollectClick = { viewModel.processIntent(CollectIntent.OnUncollectClick(it)) },
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                                .testTag("article_item")
+                            onClick = { viewModel.handleIntent(CollectIntent.OnArticleClick(it)) },
+                            onCollectClick = { viewModel.handleIntent(CollectIntent.OnUncollectClick(it)) },
+                            modifier =
+                                Modifier
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                                    .testTag("article_item"),
                         )
                     }
 
@@ -130,13 +136,14 @@ fun CollectScreen(
                     if (state.isLoadingMore) {
                         item {
                             Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(20.dp),
-                                contentAlignment = Alignment.Center
+                                modifier =
+                                    Modifier
+                                        .fillMaxSize()
+                                        .padding(20.dp),
+                                contentAlignment = Alignment.Center,
                             ) {
                                 CircularProgressIndicator(
-                                    modifier = Modifier.size(32.dp)
+                                    modifier = Modifier.size(32.dp),
                                 )
                             }
                         }
@@ -147,9 +154,10 @@ fun CollectScreen(
             // 初始加载指示器
             if (state.isLoading) {
                 CircularProgressIndicator(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .align(Alignment.Center)
+                    modifier =
+                        Modifier
+                            .size(48.dp)
+                            .align(Alignment.Center),
                 )
             }
         }

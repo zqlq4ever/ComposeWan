@@ -27,15 +27,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.zqlq.common.utils.toast.ToastUtils
 import com.zqlq.composewan.data.model.HotKeyItem
 import com.zqlq.composewan.data.model.WebsiteItem
-import com.zqlq.composewan.state.hot.HotEffect
-import com.zqlq.composewan.state.hot.HotIntent
-import com.zqlq.composewan.state.hot.HotState
-import com.zqlq.composewan.viewmodel.hot.HotViewModel
+import com.zqlq.composewan.ui.hot.viewmodel.HotViewModel
+import com.zqlq.composewan.ui.hot.viewmodel.contract.HotEvent
+import com.zqlq.composewan.ui.hot.viewmodel.contract.HotIntent
+import com.zqlq.composewan.ui.hot.viewmodel.contract.HotUiState
 import kotlinx.coroutines.flow.collectLatest
+import org.koin.androidx.compose.koinViewModel
 
 /**
  * 热门屏幕
@@ -51,26 +51,32 @@ fun HotScreen(
     modifier: Modifier = Modifier,
     onNavigateToWebView: (String) -> Unit = {},
     onNavigateToSearch: (String) -> Unit = {},
-    viewModel: HotViewModel = viewModel()
+    viewModel: HotViewModel = koinViewModel(),
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        viewModel.effect.collectLatest { effect ->
-            when (effect) {
-                is HotEffect.ShowToast -> {
-                    ToastUtils.show(effect.message)
+        viewModel.events.collectLatest { event ->
+            when (event) {
+                is HotEvent.ShowToast -> {
+                    ToastUtils.show(event.message)
                 }
-                is HotEffect.NavigateToWebView -> onNavigateToWebView(effect.url)
-                is HotEffect.NavigateToSearch -> onNavigateToSearch(effect.keyword)
+
+                is HotEvent.NavigateToWebView -> {
+                    onNavigateToWebView(event.url)
+                }
+
+                is HotEvent.NavigateToSearch -> {
+                    onNavigateToSearch(event.keyword)
+                }
             }
         }
     }
 
     HotContent(
         state = state,
-        onIntent = viewModel::processIntent,
-        modifier = modifier
+        onIntent = viewModel::handleIntent,
+        modifier = modifier,
     )
 }
 
@@ -79,36 +85,39 @@ fun HotScreen(
  */
 @Composable
 private fun HotContent(
-    state: HotState,
+    state: HotUiState,
     onIntent: (HotIntent) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     when {
         state.isLoading && state.hotKeys.isEmpty() -> {
             Box(
                 modifier = modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 CircularProgressIndicator()
             }
         }
+
         state.error != null && state.hotKeys.isEmpty() -> {
             Box(
                 modifier = modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = state.error ?: "未知错误",
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
         }
+
         else -> {
             Column(
-                modifier = modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
+                modifier =
+                    modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp),
             ) {
                 SectionTitle(title = "搜索热词")
 
@@ -116,7 +125,7 @@ private fun HotContent(
 
                 HotKeyFlowRow(
                     items = state.hotKeys,
-                    onItemClick = { name -> onIntent(HotIntent.HotKeyClick(name)) }
+                    onItemClick = { name -> onIntent(HotIntent.HotKeyClick(name)) },
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -127,7 +136,7 @@ private fun HotContent(
 
                 WebsiteFlowRow(
                     items = state.websites,
-                    onItemClick = { url -> onIntent(HotIntent.WebsiteClick(url)) }
+                    onItemClick = { url -> onIntent(HotIntent.WebsiteClick(url)) },
                 )
             }
         }
@@ -140,14 +149,14 @@ private fun HotContent(
 @Composable
 private fun SectionTitle(
     title: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Text(
         text = title,
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.Bold,
         color = MaterialTheme.colorScheme.onSurface,
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
@@ -159,17 +168,17 @@ private fun SectionTitle(
 private fun HotKeyFlowRow(
     items: List<HotKeyItem>,
     onItemClick: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     FlowRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items.forEach { item ->
             HotKeyItem(
                 item = item,
-                onClick = { onItemClick(item.name) }
+                onClick = { onItemClick(item.name) },
             )
         }
     }
@@ -182,21 +191,22 @@ private fun HotKeyFlowRow(
 private fun HotKeyItem(
     item: HotKeyItem,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier.wrapContentSize(),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        ),
-        onClick = onClick
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            ),
+        onClick = onClick,
     ) {
         Text(
             text = item.name,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSecondaryContainer,
-            modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
+            modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp),
         )
     }
 }
@@ -209,17 +219,17 @@ private fun HotKeyItem(
 private fun WebsiteFlowRow(
     items: List<WebsiteItem>,
     onItemClick: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     FlowRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items.forEach { item ->
             WebsiteItemView(
                 item = item,
-                onClick = { onItemClick(item.url) }
+                onClick = { onItemClick(item.url) },
             )
         }
     }
@@ -232,21 +242,22 @@ private fun WebsiteFlowRow(
 private fun WebsiteItemView(
     item: WebsiteItem,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier.wrapContentSize(),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer
-        ),
-        onClick = onClick
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+            ),
+        onClick = onClick,
     ) {
         Text(
             text = item.name,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onTertiaryContainer,
-            modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
+            modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp),
         )
     }
 }

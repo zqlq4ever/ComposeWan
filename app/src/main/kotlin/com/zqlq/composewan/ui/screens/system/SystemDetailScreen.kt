@@ -3,7 +3,6 @@ package com.zqlq.composewan.ui.screens.system
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,15 +35,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.zqlq.composewan.data.model.ArticleItem
 import com.zqlq.composewan.data.model.SystemChild
-import com.zqlq.composewan.state.system.SystemDetailEffect
-import com.zqlq.composewan.state.system.SystemDetailIntent
 import com.zqlq.composewan.ui.components.ArticleItemView
-import com.zqlq.composewan.viewmodel.system.SystemDetailViewModel
-import com.zqlq.composewan.viewmodel.system.SystemDetailViewModelFactory
+import com.zqlq.composewan.ui.system.viewmodel.SystemDetailViewModel
+import com.zqlq.composewan.ui.system.viewmodel.contract.SystemDetailEvent
+import com.zqlq.composewan.ui.system.viewmodel.contract.SystemDetailIntent
 import kotlinx.coroutines.flow.collectLatest
+import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 /**
  * 体系详情页面
@@ -64,20 +63,21 @@ fun SystemDetailScreen(
     onNavigateToWebView: (String) -> Unit = {},
     categoryName: String,
     children: List<SystemChild>,
-    viewModel: SystemDetailViewModel = viewModel(
-        factory = SystemDetailViewModelFactory(categoryName, children)
-    )
+    viewModel: SystemDetailViewModel =
+        koinViewModel(
+            parameters = { parametersOf(categoryName, children) },
+        ),
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
 
     // 系统返回键处理
     BackHandler(onBack = onBack)
 
     LaunchedEffect(Unit) {
-        viewModel.effect.collectLatest { effect ->
-            when (effect) {
-                is SystemDetailEffect.NavigateToWebView -> onNavigateToWebView(effect.url)
+        viewModel.events.collectLatest { event ->
+            when (event) {
+                is SystemDetailEvent.NavigateToWebView -> onNavigateToWebView(event.url)
             }
         }
     }
@@ -91,39 +91,40 @@ fun SystemDetailScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回"
+                            contentDescription = "返回",
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors()
+                colors = TopAppBarDefaults.topAppBarColors(),
             )
-        }
+        },
     ) { paddingValues ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
         ) {
             // Tab 栏
             PrimaryScrollableTabRow(
                 selectedTabIndex = state.children.indexOfFirst { it.id == state.selectedChildId },
                 modifier = Modifier.fillMaxWidth(),
                 edgePadding = 4.dp,
-                divider = { /* 隐藏分割线 */ }
+                divider = { /* 隐藏分割线 */ },
             ) {
                 state.children.forEach { child ->
                     Tab(
                         selected = child.id == state.selectedChildId,
-                        onClick = { 
-                            viewModel.processIntent(SystemDetailIntent.SelectChild(child.id))
+                        onClick = {
+                            viewModel.handleIntent(SystemDetailIntent.SelectChild(child.id))
                         },
                         text = {
                             Text(
                                 text = child.name,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                overflow = TextOverflow.Ellipsis,
                             )
-                        }
+                        },
                     )
                 }
             }
@@ -135,7 +136,7 @@ fun SystemDetailScreen(
                 state.isLoading && state.articles.isEmpty() -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         CircularProgressIndicator()
                     }
@@ -144,11 +145,11 @@ fun SystemDetailScreen(
                 state.error != null -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         Text(
                             text = state.error ?: "未知错误",
-                            color = MaterialTheme.colorScheme.error
+                            color = MaterialTheme.colorScheme.error,
                         )
                     }
                 }
@@ -157,11 +158,11 @@ fun SystemDetailScreen(
                     ArticleList(
                         articles = state.articles,
                         isLoading = state.isLoading,
-                        onArticleClick = { url -> viewModel.processIntent(SystemDetailIntent.ArticleClick(url)) },
+                        onArticleClick = { url -> viewModel.handleIntent(SystemDetailIntent.ArticleClick(url)) },
                         onCollectClick = { id, isCollect ->
-                            viewModel.processIntent(SystemDetailIntent.CollectClick(id, isCollect))
+                            viewModel.handleIntent(SystemDetailIntent.CollectClick(id, isCollect))
                         },
-                        onLoadMore = { viewModel.processIntent(SystemDetailIntent.LoadMore) }
+                        onLoadMore = { viewModel.handleIntent(SystemDetailIntent.LoadMore) },
                     )
                 }
             }
@@ -178,7 +179,7 @@ private fun ArticleList(
     isLoading: Boolean,
     onArticleClick: (String) -> Unit,
     onCollectClick: (Int, Boolean) -> Unit,
-    onLoadMore: () -> Unit
+    onLoadMore: () -> Unit,
 ) {
     val listState = rememberLazyListState()
 
@@ -199,34 +200,34 @@ private fun ArticleList(
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         state = listState,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         items(articles, key = { it.id }) {
             ArticleItemView(
                 article = it,
                 onClick = { onArticleClick(it.url) },
                 onCollectClick = { onCollectClick(it.id, it.isCollect) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
 
         if (isLoading) {
             item {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                    contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(24.dp),
                     )
                 }
             }
         }
     }
 }
-
-

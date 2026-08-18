@@ -5,28 +5,29 @@ import android.content.res.Configuration
 import com.zqlq.common.utils.log.LogUtils
 import com.zqlq.common.utils.storage.MMKVUtils
 import com.zqlq.common.utils.toast.ToastUtils
+import com.zqlq.composewan.di.appModules
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.GlobalContext.startKoin
 
 /**
  * 全局 Application
  */
 class Application : Application() {
-
     override fun onCreate() {
         super.onCreate()
         initToast()
         initLog()
         initMMKV()
+        initKoin()
     }
 
     /**
      * 初始化 Toast 框架
      */
     private fun initToast() {
-        // 检测当前是否为深色模式
-        val isDarkTheme = resources.configuration.uiMode and
+        val isDarkTheme =
+            resources.configuration.uiMode and
                 Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
-
-        // 初始化Toast，传递深色模式参数
         ToastUtils.init(this, isDarkTheme)
     }
 
@@ -45,16 +46,23 @@ class Application : Application() {
     }
 
     /**
+     * 初始化 Koin
+     */
+    private fun initKoin() {
+        startKoin {
+            androidContext(this@Application)
+            modules(appModules)
+        }
+    }
+
+    /**
      * 应用配置变化时调用（如切换深色模式）
      */
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-
-        // 检测深色模式变化并更新Toast样式
-        val isDarkTheme = newConfig.uiMode and
+        val isDarkTheme =
+            newConfig.uiMode and
                 Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
-
-        // 根据当前主题重新设置Toast样式
         if (isDarkTheme) {
             ToastUtils.setWhiteStyle()
         } else {
