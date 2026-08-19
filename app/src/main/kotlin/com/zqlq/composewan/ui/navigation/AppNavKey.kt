@@ -39,6 +39,18 @@ data object CollectKey : NavKey
 data object AboutKey : NavKey
 
 @Serializable
+data object SettingsKey : NavKey
+
+@Serializable
+data object LanguageSettingsKey : NavKey
+
+@Serializable
+data object ThemeSettingsKey : NavKey
+
+@Serializable
+data object AccountSettingsKey : NavKey
+
+@Serializable
 data class WebViewKey(
     val url: String,
 ) : NavKey

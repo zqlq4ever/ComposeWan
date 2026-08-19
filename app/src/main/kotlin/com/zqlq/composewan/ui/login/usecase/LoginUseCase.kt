@@ -16,7 +16,7 @@ class LoginUseCase(
                 error("empty")
             }
             val user = repository.login(username, password)
-            UserSession.saveUsername(user.nickname?.takeIf { it.isNotBlank() } ?: user.username.orEmpty())
+            UserSession.saveLogin(user.nickname?.takeIf { it.isNotBlank() } ?: user.username.orEmpty())
         }
 
     suspend fun register(

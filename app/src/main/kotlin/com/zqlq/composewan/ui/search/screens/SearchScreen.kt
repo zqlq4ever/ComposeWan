@@ -37,9 +37,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.zqlq.composewan.R
 import com.zqlq.composewan.data.model.ArticleItem
 import com.zqlq.composewan.ui.search.viewmodel.SearchViewModel
 import com.zqlq.composewan.ui.search.viewmodel.contract.SearchEvent
@@ -129,7 +131,7 @@ private fun SearchTopBar(
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "返回",
+                    contentDescription = stringResource(R.string.action_back),
                 )
             }
         },
@@ -166,7 +168,7 @@ private fun SearchTopBar(
                     decorationBox = { innerTextField ->
                         if (searchQuery.isEmpty()) {
                             Text(
-                                text = "搜索文章",
+                                text = stringResource(R.string.search_hint),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -182,7 +184,7 @@ private fun SearchTopBar(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Clear,
-                            contentDescription = "清除",
+                            contentDescription = stringResource(R.string.action_clear),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(16.dp),
                         )
@@ -231,7 +233,7 @@ private fun SearchContent(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "输入关键词搜索文章",
+                        text = stringResource(R.string.search_empty_hint),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
@@ -243,7 +245,7 @@ private fun SearchContent(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "未找到相关结果",
+                        text = stringResource(R.string.search_no_results),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }

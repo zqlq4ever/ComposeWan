@@ -3,44 +3,54 @@ package com.zqlq.composewan.ui.system.screens
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.zqlq.common.utils.toast.ToastUtils
+import com.zqlq.composewan.R
 import com.zqlq.composewan.data.model.SystemCategory
 import com.zqlq.composewan.data.model.SystemChild
 import com.zqlq.composewan.ui.components.ErrorRetryPane
@@ -127,8 +137,9 @@ private fun SystemContent(
                 modifier =
                     modifier
                         .fillMaxSize()
-                        .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                        .background(MaterialTheme.colorScheme.background),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 items(
                     items = state.categories,
@@ -138,7 +149,9 @@ private fun SystemContent(
                         category = category,
                         isExpanded = state.expandedIds.contains(category.id),
                         onToggleExpand = { onIntent(SystemIntent.ToggleExpand(category.id)) },
-                        onChildClick = { child -> onIntent(SystemIntent.ChildClick(category.name, category.children)) },
+                        onChildClick = {
+                            onIntent(SystemIntent.ChildClick(category.name, category.children))
+                        },
                     )
                 }
             }
@@ -147,7 +160,7 @@ private fun SystemContent(
 }
 
 /**
- * 分类项（可折叠）
+ * 分类项：圆角卡片 + 色块序号 + 展开动画。
  */
 @Composable
 private fun CategoryItem(
@@ -158,41 +171,74 @@ private fun CategoryItem(
     modifier: Modifier = Modifier,
 ) {
     val arrowRotation by animateFloatAsState(
-        targetValue = if (isExpanded) 90f else 0f,
+        targetValue = if (isExpanded) 180f else 0f,
         label = "arrow_rotation",
     )
+    val childCount = category.children.size
+    val accent = MaterialTheme.colorScheme.primary
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(16.dp),
         colors =
             CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .clickable(
-                            indication = null, // 禁用水波纹效果
-                            interactionSource = remember { MutableInteractionSource() },
-                        ) { onToggleExpand() }
-                        .padding(16.dp),
+                        .clickable(onClick = onToggleExpand)
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    text = category.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f),
-                )
+                Box(
+                    modifier =
+                        Modifier
+                            .size(36.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(accent.copy(alpha = 0.12f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = category.name.take(1),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = accent,
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = category.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (childCount > 0) {
+                        Text(
+                            text = stringResource(R.string.system_child_count, childCount),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
 
                 Icon(
-                    imageVector = Icons.Filled.KeyboardArrowRight,
-                    contentDescription = if (isExpanded) "收起" else "展开",
+                    imageVector = Icons.Filled.ExpandMore,
+                    contentDescription =
+                        if (isExpanded) {
+                            stringResource(R.string.action_collapse)
+                        } else {
+                            stringResource(R.string.action_expand)
+                        },
                     modifier =
                         Modifier
                             .size(24.dp)
@@ -203,13 +249,20 @@ private fun CategoryItem(
 
             AnimatedVisibility(
                 visible = isExpanded,
-                enter = expandVertically(),
-                exit = shrinkVertically(),
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut(),
             ) {
-                ChildFlowRow(
-                    children = category.children,
-                    onChildClick = onChildClick,
-                )
+                Column {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    ChildFlowRow(
+                        children = category.children,
+                        onChildClick = onChildClick,
+                    )
+                }
             }
         }
     }
@@ -243,7 +296,7 @@ private fun ChildFlowRow(
 }
 
 /**
- * 子分类项
+ * 子分类标签
  */
 @Composable
 private fun ChildItem(
@@ -251,20 +304,19 @@ private fun ChildItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = modifier.wrapContentSize(),
-        shape = RoundedCornerShape(16.dp),
-        colors =
-            CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            ),
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f),
         onClick = onClick,
     ) {
         Text(
             text = child.name,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
-            modifier = Modifier.padding(vertical = 6.dp, horizontal = 12.dp),
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }

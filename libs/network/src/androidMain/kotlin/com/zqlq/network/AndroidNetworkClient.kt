@@ -16,9 +16,9 @@ object AndroidNetworkClient {
     fun create(): HttpClient =
         HttpClient(Android) {
             install(HttpTimeout) {
-                connectTimeoutMillis = 30_000
-                requestTimeoutMillis = 30_000
-                socketTimeoutMillis = 30_000
+                connectTimeoutMillis = 5_000
+                requestTimeoutMillis = 5_000
+                socketTimeoutMillis = 5_000
             }
             install(HttpCookies) {
                 storage = MmkvCookiesStorage()
@@ -28,6 +28,7 @@ object AndroidNetworkClient {
                     Json {
                         ignoreUnknownKeys = true
                         isLenient = true
+                        coerceInputValues = true
                         prettyPrint = false
                     },
                 )

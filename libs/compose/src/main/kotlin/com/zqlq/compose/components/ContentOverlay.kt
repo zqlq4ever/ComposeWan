@@ -13,12 +13,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.findViewTreeViewModelStoreOwner
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.findViewTreeSavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.zqlq.common.utils.prefs.AppPreferences
 import com.zqlq.compose.ui.theme.ComposeWanTheme
 import com.zqlq.compose.utils.findActivity
 
@@ -49,7 +51,12 @@ fun ContentOverlay(
                 hostView.findViewTreeViewModelStoreOwner()?.let { setViewTreeViewModelStoreOwner(it) }
                 hostView.findViewTreeSavedStateRegistryOwner()?.let { setViewTreeSavedStateRegistryOwner(it) }
                 setContent {
-                    ComposeWanTheme {
+                    val themeMode by AppPreferences.themeModeFlow.collectAsStateWithLifecycle()
+                    val themeSkin by AppPreferences.themeSkinFlow.collectAsStateWithLifecycle()
+                    ComposeWanTheme(
+                        themeMode = themeMode,
+                        themeSkin = themeSkin,
+                    ) {
                         holder.content?.invoke()
                     }
                 }

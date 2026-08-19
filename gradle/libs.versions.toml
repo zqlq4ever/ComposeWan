@@ -20,6 +20,7 @@ toaster = "12.0"
 ktor = "3.5.2"
 utilcodex = "1.31.1"
 compose-unstyled = "2.9.0"
+appcompat = "1.7.1"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
@@ -52,6 +53,7 @@ coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" 
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 tencent-mmkv = { module = "com.tencent:mmkv", version.ref = "mmkv" }
 blankj-utilcodex = { module = "com.blankj:utilcodex", version.ref = "utilcodex" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 compose-unstyled = { module = "com.composables:composeunstyled-primitives", version.ref = "compose-unstyled" }
 toaster = { module = "com.github.getActivity:Toaster", version.ref = "toaster" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }

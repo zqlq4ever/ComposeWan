@@ -35,4 +35,5 @@ android {
 dependencies {
     api(projects.libs.network)
     api(projects.libs.compose)
+    implementation(libs.androidx.appcompat)
 }

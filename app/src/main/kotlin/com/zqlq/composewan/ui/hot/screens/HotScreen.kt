@@ -24,12 +24,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.zqlq.common.utils.toast.ToastUtils
+import com.zqlq.composewan.R
 import com.zqlq.composewan.data.model.HotKeyItem
 import com.zqlq.composewan.data.model.WebsiteItem
 import com.zqlq.composewan.ui.components.ErrorRetryPane
@@ -125,7 +127,7 @@ private fun HotContent(
                         .verticalScroll(rememberScrollState())
                         .padding(16.dp),
             ) {
-                SectionTitle(title = "搜索热词")
+                SectionTitle(title = stringResource(R.string.hot_section_keys))
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -136,7 +138,7 @@ private fun HotContent(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                SectionTitle(title = "常用网站")
+                SectionTitle(title = stringResource(R.string.hot_section_websites))
 
                 Spacer(modifier = Modifier.height(12.dp))
 

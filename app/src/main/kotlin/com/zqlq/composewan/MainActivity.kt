@@ -3,10 +3,10 @@ package com.zqlq.composewan
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.os.SystemClock
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -14,6 +14,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.zqlq.common.utils.prefs.AppPreferences
+import com.zqlq.common.utils.prefs.ThemeMode
+import com.zqlq.common.utils.prefs.ThemeSkin
 import com.zqlq.common.utils.toast.ToastUtils
 import com.zqlq.compose.ui.theme.ComposeWanTheme
 import com.zqlq.composewan.ui.navigation.MainNavigation
@@ -22,7 +26,7 @@ import com.zqlq.composewan.ui.navigation.MainNavigation
  * 应用主入口 Activity
  * 负责初始化 UI 并设置边缘到边缘显示模式
  */
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     /**
      * Activity 创建时的初始化
      * @param savedInstanceState 保存的实例状态
@@ -32,7 +36,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            ComposeWanTheme {
+            val themeMode by AppPreferences.themeModeFlow.collectAsStateWithLifecycle()
+            val themeSkin by AppPreferences.themeSkinFlow.collectAsStateWithLifecycle()
+            ComposeWanTheme(
+                themeMode = themeMode,
+                themeSkin = themeSkin,
+            ) {
                 AppContent()
             }
         }
@@ -57,7 +66,7 @@ fun AppContent() {
     BackHandler {
         val currentTime = SystemClock.elapsedRealtime()
         if (currentTime - lastBackPressTime < backPressInterval) {
-            (context as? ComponentActivity)?.finish()
+            (context as? AppCompatActivity)?.finish()
         } else {
             ToastUtils.show(R.string.press_back_again_to_exit)
             lastBackPressTime = currentTime
@@ -74,7 +83,10 @@ fun AppContent() {
 @Preview(showBackground = true)
 @Composable
 fun AppContentPreview() {
-    ComposeWanTheme {
+    ComposeWanTheme(
+        themeMode = ThemeMode.SYSTEM,
+        themeSkin = ThemeSkin.PURPLE,
+    ) {
         AppContent()
     }
 }

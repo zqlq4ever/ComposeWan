@@ -36,12 +36,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.zqlq.common.utils.toast.ToastUtils
+import com.zqlq.composewan.R
 import com.zqlq.composewan.ui.login.viewmodel.RegisterViewModel
 import com.zqlq.composewan.ui.login.viewmodel.contract.RegisterEvent
 import com.zqlq.composewan.ui.login.viewmodel.contract.RegisterIntent
@@ -96,12 +98,12 @@ fun RegisterScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text("注册") },
+                title = { Text(stringResource(R.string.register_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回",
+                            contentDescription = stringResource(R.string.action_back),
                         )
                     }
                 },
@@ -132,7 +134,7 @@ fun RegisterScreen(
                 TextField(
                     value = state.username,
                     onValueChange = { viewModel.handleIntent(RegisterIntent.UpdateUsername(it)) },
-                    placeholder = { Text("请输入账号") },
+                    placeholder = { Text(stringResource(R.string.please_input_account)) },
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -160,7 +162,7 @@ fun RegisterScreen(
                 TextField(
                     value = state.password,
                     onValueChange = { viewModel.handleIntent(RegisterIntent.UpdatePassword(it)) },
-                    placeholder = { Text("请输入密码") },
+                    placeholder = { Text(stringResource(R.string.please_input_password)) },
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -190,7 +192,11 @@ fun RegisterScreen(
                         ) {
                             Icon(
                                 imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                                contentDescription = if (passwordVisible) "隐藏密码" else "显示密码",
+                                contentDescription = if (passwordVisible) {
+                                    stringResource(R.string.hide_password)
+                                } else {
+                                    stringResource(R.string.show_password)
+                                },
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(20.dp),
                             )
@@ -202,7 +208,7 @@ fun RegisterScreen(
                 TextField(
                     value = state.confirmPassword,
                     onValueChange = { viewModel.handleIntent(RegisterIntent.UpdateConfirmPassword(it)) },
-                    placeholder = { Text("请确认密码") },
+                    placeholder = { Text(stringResource(R.string.please_confirm_password)) },
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -232,7 +238,11 @@ fun RegisterScreen(
                         ) {
                             Icon(
                                 imageVector = if (confirmPasswordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                                contentDescription = if (confirmPasswordVisible) "隐藏密码" else "显示密码",
+                                contentDescription = if (confirmPasswordVisible) {
+                                    stringResource(R.string.hide_password)
+                                } else {
+                                    stringResource(R.string.show_password)
+                                },
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(20.dp),
                             )
@@ -252,7 +262,7 @@ fun RegisterScreen(
                             strokeWidth = 2.dp,
                         )
                     } else {
-                        Text("注册")
+                        Text(stringResource(R.string.register_title))
                     }
                 }
 

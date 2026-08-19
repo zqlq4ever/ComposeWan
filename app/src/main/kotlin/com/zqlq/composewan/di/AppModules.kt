@@ -5,6 +5,7 @@ import com.zqlq.composewan.ui.home.di.homeModule
 import com.zqlq.composewan.ui.hot.di.hotModule
 import com.zqlq.composewan.ui.login.di.loginModule
 import com.zqlq.composewan.ui.search.di.searchModule
+import com.zqlq.composewan.ui.settings.di.settingsModule
 import com.zqlq.composewan.ui.system.di.systemModule
 
 /**
@@ -19,4 +20,5 @@ val appModules =
         searchModule,
         loginModule,
         collectModule,
+        settingsModule,
     )

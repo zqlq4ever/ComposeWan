@@ -58,6 +58,13 @@ class MmkvCookiesStorage : CookiesStorage {
 
     override fun close() = Unit
 
+    /** 清空本地登录 Cookie。 */
+    suspend fun clear() {
+        mutex.withLock {
+            MMKVUtils.remove(KEY_COOKIES)
+        }
+    }
+
     private fun load(): List<StoredCookie> {
         val raw = MMKVUtils.getString(KEY_COOKIES, "")
         if (raw.isBlank()) return emptyList()
@@ -66,6 +73,11 @@ class MmkvCookiesStorage : CookiesStorage {
 
     companion object {
         private const val KEY_COOKIES = "wan_cookies"
+
+        /** 不依赖实例，直接清 MMKV 中的 Cookie。 */
+        fun clearStored() {
+            MMKVUtils.remove(KEY_COOKIES)
+        }
     }
 }
 

@@ -8,6 +8,8 @@ import com.zqlq.composewan.ui.system.usecase.SystemUseCase
 import com.zqlq.composewan.ui.system.viewmodel.contract.SystemEvent
 import com.zqlq.composewan.ui.system.viewmodel.contract.SystemIntent
 import com.zqlq.composewan.ui.system.viewmodel.contract.SystemUiState
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,6 +31,8 @@ class SystemViewModel(
     private val _events = Channel<SystemEvent>(Channel.BUFFERED)
     val events: Flow<SystemEvent> = _events.receiveAsFlow()
 
+    private var loadJob: Job? = null
+
     init {
         handleIntent(SystemIntent.LoadData)
     }
@@ -42,15 +46,21 @@ class SystemViewModel(
     }
 
     private fun loadData() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-            runCatching { useCase.loadCategories() }
-                .onSuccess { categories ->
-                    _uiState.update { it.copy(categories = categories, isLoading = false) }
-                }.onFailure { e ->
+        loadJob?.cancel()
+        loadJob =
+            viewModelScope.launch {
+                _uiState.update { it.copy(isLoading = true, error = null) }
+                try {
+                    val categories = useCase.loadCategories()
+                    _uiState.update {
+                        it.copy(categories = categories, isLoading = false, error = null)
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Throwable) {
                     _uiState.update { it.copy(isLoading = false, error = e.toLoadError()) }
                 }
-        }
+            }
     }
 
     private fun toggleExpand(categoryId: Int) {

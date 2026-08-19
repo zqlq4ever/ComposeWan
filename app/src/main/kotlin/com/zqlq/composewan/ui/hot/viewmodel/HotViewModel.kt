@@ -7,6 +7,8 @@ import com.zqlq.composewan.ui.hot.usecase.HotUseCase
 import com.zqlq.composewan.ui.hot.viewmodel.contract.HotEvent
 import com.zqlq.composewan.ui.hot.viewmodel.contract.HotIntent
 import com.zqlq.composewan.ui.hot.viewmodel.contract.HotUiState
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +30,8 @@ class HotViewModel(
     private val _events = Channel<HotEvent>(Channel.BUFFERED)
     val events: Flow<HotEvent> = _events.receiveAsFlow()
 
+    private var loadJob: Job? = null
+
     init {
         handleIntent(HotIntent.LoadData)
     }
@@ -41,18 +45,22 @@ class HotViewModel(
     }
 
     private fun loadData() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-            runCatching {
-                useCase.loadHotKeys() to useCase.loadWebsites()
-            }.onSuccess { (hotKeys, websites) ->
-                _uiState.update {
-                    it.copy(hotKeys = hotKeys, websites = websites, isLoading = false)
+        loadJob?.cancel()
+        loadJob =
+            viewModelScope.launch {
+                _uiState.update { it.copy(isLoading = true, error = null) }
+                try {
+                    val hotKeys = useCase.loadHotKeys()
+                    val websites = useCase.loadWebsites()
+                    _uiState.update {
+                        it.copy(hotKeys = hotKeys, websites = websites, isLoading = false, error = null)
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Throwable) {
+                    _uiState.update { it.copy(isLoading = false, error = e.toLoadError()) }
                 }
-            }.onFailure { e ->
-                _uiState.update { it.copy(isLoading = false, error = e.toLoadError()) }
             }
-        }
     }
 
     private fun onHotKeyClick(name: String) {

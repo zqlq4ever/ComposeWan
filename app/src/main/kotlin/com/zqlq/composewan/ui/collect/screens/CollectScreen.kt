@@ -1,19 +1,25 @@
 package com.zqlq.composewan.ui.collect.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -26,9 +32,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.composeunstyled.Thumb
+import com.composeunstyled.UnstyledVerticalScrollbar
+import com.composeunstyled.rememberScrollbarState
 import com.zqlq.common.utils.toast.ToastUtils
+import com.zqlq.composewan.R
 import com.zqlq.composewan.ui.collect.viewmodel.CollectViewModel
 import com.zqlq.composewan.ui.collect.viewmodel.contract.CollectEvent
 import com.zqlq.composewan.ui.collect.viewmodel.contract.CollectIntent
@@ -81,6 +92,7 @@ fun CollectScreen(
     // 下拉刷新状态
     val pullToRefreshState = rememberPullToRefreshState()
     val lazyListState = rememberLazyListState()
+    val scrollbarState = rememberScrollbarState(lazyListState)
 
     // 监听滚动到底部，加载更多
     LaunchedEffect(lazyListState.isScrollInProgress) {
@@ -96,12 +108,12 @@ fun CollectScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text("我的收藏") },
+                title = { Text(stringResource(R.string.collect_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回",
+                            contentDescription = stringResource(R.string.action_back),
                         )
                     }
                 },
@@ -121,38 +133,61 @@ fun CollectScreen(
                 isRefreshing = state.isRefreshing,
                 modifier = Modifier.fillMaxSize(),
             ) {
-                LazyColumn(
-                    state = lazyListState,
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    // 收藏文章列表
-                    items(state.articles) {
-                        ArticleItemView(
-                            article = it,
-                            onClick = { viewModel.handleIntent(CollectIntent.OnArticleClick(it)) },
-                            onCollectClick = { viewModel.handleIntent(CollectIntent.OnUncollectClick(it)) },
-                            modifier =
-                                Modifier
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                                    .testTag("article_item"),
-                        )
-                    }
-
-                    // 加载更多指示器
-                    if (state.isLoadingMore) {
-                        item {
-                            Box(
+                Box(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        state = lazyListState,
+                        modifier =
+                            Modifier
+                                .fillMaxSize()
+                                .padding(end = 8.dp),
+                    ) {
+                        // 收藏文章列表
+                        items(state.articles, key = { it.id }) {
+                            ArticleItemView(
+                                article = it,
+                                onClick = { viewModel.handleIntent(CollectIntent.OnArticleClick(it)) },
+                                onCollectClick = { viewModel.handleIntent(CollectIntent.OnUncollectClick(it)) },
                                 modifier =
                                     Modifier
-                                        .fillMaxSize()
-                                        .padding(20.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(32.dp),
-                                )
+                                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                                        .testTag("article_item"),
+                            )
+                        }
+
+                        // 加载更多指示器
+                        if (state.isLoadingMore) {
+                            item {
+                                Box(
+                                    modifier =
+                                        Modifier
+                                            .fillMaxSize()
+                                            .padding(20.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(32.dp),
+                                    )
+                                }
                             }
                         }
+                    }
+
+                    UnstyledVerticalScrollbar(
+                        scrollbarState = scrollbarState,
+                        modifier =
+                            Modifier
+                                .align(Alignment.CenterEnd)
+                                .fillMaxHeight()
+                                .width(4.dp),
+                    ) {
+                        Thumb(
+                            Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                                    RoundedCornerShape(2.dp),
+                                ),
+                        )
                     }
                 }
             }

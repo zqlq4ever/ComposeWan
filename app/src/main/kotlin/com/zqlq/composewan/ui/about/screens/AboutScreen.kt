@@ -26,11 +26,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
+import com.zqlq.composewan.R
 
 /**
  * 关于页面
@@ -53,12 +55,12 @@ fun AboutScreen(
         // 使用TopAppBarDefaults配置标题栏，自动处理状态栏
         topBar = {
             TopAppBar(
-                title = { Text("关于") },
+                title = { Text(stringResource(R.string.about_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回",
+                            contentDescription = stringResource(R.string.action_back),
                         )
                     }
                 },
@@ -88,7 +90,7 @@ fun AboutScreen(
                         .memoryCachePolicy(CachePolicy.ENABLED) // 内存缓存
                         .diskCachePolicy(CachePolicy.DISABLED) // 禁用磁盘缓存
                         .build(),
-                contentDescription = "应用图标",
+                contentDescription = stringResource(R.string.cd_app_icon),
                 modifier =
                     Modifier
                         .size(120.dp)
@@ -97,7 +99,7 @@ fun AboutScreen(
             )
 
             Text(
-                text = "Compose玩Android\n版本 1.0.0",
+                text = stringResource(R.string.about_app_info),
                 textAlign = TextAlign.Center,
                 modifier =
                     Modifier
@@ -106,7 +108,7 @@ fun AboutScreen(
             )
 
             Text(
-                text = "一个基于Jetpack Compose开发的Android应用，展示玩Android API数据。",
+                text = stringResource(R.string.about_description),
                 modifier =
                     Modifier
                         .padding(top = 24.dp)

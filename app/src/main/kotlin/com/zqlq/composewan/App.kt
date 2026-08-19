@@ -6,6 +6,7 @@ import com.zqlq.common.utils.log.LogUtils
 import com.zqlq.common.utils.storage.MMKVUtils
 import com.zqlq.common.utils.toast.ToastUtils
 import com.zqlq.composewan.di.appModules
+import com.zqlq.composewan.ui.settings.LocaleHelper
 import com.zqlq.network.AndroidNetworkClient
 import com.zqlq.network.NetworkConfig
 import com.zqlq.network.NetworkManager
@@ -22,6 +23,7 @@ class App : Application() {
         initToast()
         initLog()
         initMMKV()
+        LocaleHelper.applyFromPreferences()
         initNetwork()
         initKoin()
     }

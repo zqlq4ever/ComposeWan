@@ -2,11 +2,14 @@ package com.zqlq.composewan.ui.search.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.zqlq.composewan.ui.common.toLoadError
 import com.zqlq.composewan.ui.search.usecase.SearchUseCase
 import com.zqlq.composewan.ui.search.viewmodel.contract.SearchEvent
 import com.zqlq.composewan.ui.search.viewmodel.contract.SearchIntent
 import com.zqlq.composewan.ui.search.viewmodel.contract.SearchUiState
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +38,7 @@ class SearchViewModel(
     val events: Flow<SearchEvent> = _events.receiveAsFlow()
 
     private val searchQuery = MutableStateFlow("")
+    private var searchJob: Job? = null
 
     init {
         searchQuery
@@ -61,18 +65,26 @@ class SearchViewModel(
 
     private fun performSearch(query: String) {
         if (query.isBlank()) return
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-            runCatching { useCase.search(query) }
-                .onSuccess { page ->
-                    _uiState.update { it.copy(searchResults = page.articles, isLoading = false) }
-                }.onFailure { e ->
-                    _uiState.update { it.copy(isLoading = false, error = e.message) }
+        searchJob?.cancel()
+        searchJob =
+            viewModelScope.launch {
+                _uiState.update { it.copy(isLoading = true, error = null) }
+                try {
+                    val page = useCase.search(query)
+                    _uiState.update {
+                        it.copy(searchResults = page.articles, isLoading = false, error = null)
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Throwable) {
+                    _uiState.update { it.copy(isLoading = false, error = e.toLoadError()) }
                 }
-        }
+            }
     }
 
     private fun clearSearch() {
+        searchJob?.cancel()
+        searchJob = null
         _uiState.update { SearchUiState() }
         searchQuery.value = ""
     }

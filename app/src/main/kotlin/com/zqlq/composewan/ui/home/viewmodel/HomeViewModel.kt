@@ -9,6 +9,8 @@ import com.zqlq.composewan.ui.home.viewmodel.contract.HomeIntent
 import com.zqlq.composewan.ui.home.viewmodel.contract.HomeUiState
 import com.zqlq.composewan.ui.common.toLoadError
 import com.zqlq.network.ApiException
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +34,7 @@ class HomeViewModel(
     val events: Flow<HomeEvent> = _events.receiveAsFlow()
 
     private var nextPage = 0
+    private var loadJob: Job? = null
 
     init {
         handleIntent(HomeIntent.LoadData)
@@ -50,24 +53,29 @@ class HomeViewModel(
     }
 
     private fun loadData() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-            runCatching {
-                useCase.loadBanners() to useCase.loadArticles(page = 0)
-            }.onSuccess { (banners, page) ->
-                nextPage = 1
-                _uiState.update {
-                    it.copy(
-                        banners = banners,
-                        articles = page.articles,
-                        isLoading = false,
-                        hasMore = !page.over,
-                    )
+        loadJob?.cancel()
+        loadJob =
+            viewModelScope.launch {
+                _uiState.update { it.copy(isLoading = true, error = null) }
+                try {
+                    val banners = useCase.loadBanners()
+                    val page = useCase.loadArticles(page = 0)
+                    nextPage = 1
+                    _uiState.update {
+                        it.copy(
+                            banners = banners,
+                            articles = page.articles,
+                            isLoading = false,
+                            hasMore = !page.over,
+                            error = null,
+                        )
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Throwable) {
+                    _uiState.update { it.copy(isLoading = false, error = e.toLoadError()) }
                 }
-            }.onFailure { e ->
-                _uiState.update { it.copy(isLoading = false, error = e.toLoadError()) }
             }
-        }
     }
 
     private fun refresh() {

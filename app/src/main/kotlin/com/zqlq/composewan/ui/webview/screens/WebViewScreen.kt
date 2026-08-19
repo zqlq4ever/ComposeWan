@@ -22,7 +22,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
+import com.zqlq.composewan.R
 
 /**
  * WebView 页面
@@ -55,7 +57,7 @@ fun WebViewScreen(
         // 使用TopAppBarDefaults配置标题栏，自动处理状态栏
         topBar = {
             TopAppBar(
-                title = { Text("详情") },
+                title = { Text(stringResource(R.string.webview_title)) },
                 navigationIcon = {
                     IconButton(onClick = {
                         if (canGoBack && webViewRef != null) {
@@ -66,7 +68,7 @@ fun WebViewScreen(
                     }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回"
+                            contentDescription = stringResource(R.string.action_back)
                         )
                     }
                 },

@@ -37,6 +37,10 @@ import com.zqlq.composewan.ui.login.screens.LoginScreen
 import com.zqlq.composewan.ui.login.screens.RegisterScreen
 import com.zqlq.composewan.ui.mine.screens.MineScreen
 import com.zqlq.composewan.ui.search.screens.SearchScreen
+import com.zqlq.composewan.ui.settings.screens.AccountSettingsScreen
+import com.zqlq.composewan.ui.settings.screens.LanguageSettingsScreen
+import com.zqlq.composewan.ui.settings.screens.SettingsScreen
+import com.zqlq.composewan.ui.settings.screens.ThemeSettingsScreen
 import com.zqlq.composewan.ui.system.screens.SystemDetailScreen
 import com.zqlq.composewan.ui.system.screens.SystemScreen
 import com.zqlq.composewan.ui.webview.screens.WebViewScreen
@@ -104,6 +108,7 @@ fun MainNavigation() {
                 listOf(
                     rememberSaveableStateHolderNavEntryDecorator(),
                     rememberViewModelStoreNavEntryDecorator(),
+                    rememberResumedInteractionNavEntryDecorator(),
                 ),
             entryProvider =
                 entryProvider {
@@ -135,6 +140,7 @@ fun MainNavigation() {
                             onAboutClick = { topLevelBackStack.add(AboutKey) },
                             onCollectClick = { topLevelBackStack.add(CollectKey) },
                             onLoginClick = { topLevelBackStack.add(LoginKey) },
+                            onSettingsClick = { topLevelBackStack.add(SettingsKey) },
                         )
                     }
                     entry<SearchKey> { key ->
@@ -165,6 +171,30 @@ fun MainNavigation() {
                     }
                     entry<AboutKey> {
                         AboutScreen(onBack = { topLevelBackStack.removeLast() })
+                    }
+                    entry<SettingsKey> {
+                        SettingsScreen(
+                            onBack = { topLevelBackStack.removeLast() },
+                            onLanguageClick = { topLevelBackStack.add(LanguageSettingsKey) },
+                            onThemeClick = { topLevelBackStack.add(ThemeSettingsKey) },
+                            onAccountClick = { topLevelBackStack.add(AccountSettingsKey) },
+                        )
+                    }
+                    entry<LanguageSettingsKey> {
+                        LanguageSettingsScreen(
+                            onBack = { topLevelBackStack.removeLast() },
+                        )
+                    }
+                    entry<ThemeSettingsKey> {
+                        ThemeSettingsScreen(
+                            onBack = { topLevelBackStack.removeLast() },
+                        )
+                    }
+                    entry<AccountSettingsKey> {
+                        AccountSettingsScreen(
+                            onBack = { topLevelBackStack.removeLast() },
+                            onNavigateToLogin = { topLevelBackStack.add(LoginKey) },
+                        )
                     }
                     entry<WebViewKey> { key ->
                         WebViewScreen(
