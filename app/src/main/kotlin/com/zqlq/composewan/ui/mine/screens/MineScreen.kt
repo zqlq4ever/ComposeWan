@@ -1,4 +1,4 @@
-package com.zqlq.composewan.ui.screens.mine
+package com.zqlq.composewan.ui.mine.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

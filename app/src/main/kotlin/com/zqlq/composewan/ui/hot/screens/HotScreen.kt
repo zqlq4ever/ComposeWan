@@ -1,4 +1,4 @@
-package com.zqlq.composewan.ui.screens.hot
+package com.zqlq.composewan.ui.hot.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

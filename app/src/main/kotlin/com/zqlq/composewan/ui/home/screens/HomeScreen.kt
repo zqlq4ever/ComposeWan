@@ -1,4 +1,4 @@
-package com.zqlq.composewan.ui.screens.home
+package com.zqlq.composewan.ui.home.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

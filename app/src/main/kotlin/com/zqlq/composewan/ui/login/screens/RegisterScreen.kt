@@ -1,4 +1,4 @@
-package com.zqlq.composewan.ui.screens.login
+package com.zqlq.composewan.ui.login.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background

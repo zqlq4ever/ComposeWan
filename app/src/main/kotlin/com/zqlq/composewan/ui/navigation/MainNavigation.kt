@@ -29,17 +29,17 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.zqlq.composewan.R
-import com.zqlq.composewan.ui.screens.about.AboutScreen
-import com.zqlq.composewan.ui.screens.collect.CollectScreen
-import com.zqlq.composewan.ui.screens.home.HomeScreen
-import com.zqlq.composewan.ui.screens.hot.HotScreen
-import com.zqlq.composewan.ui.screens.login.LoginScreen
-import com.zqlq.composewan.ui.screens.login.RegisterScreen
-import com.zqlq.composewan.ui.screens.mine.MineScreen
-import com.zqlq.composewan.ui.screens.search.SearchScreen
-import com.zqlq.composewan.ui.screens.system.SystemDetailScreen
-import com.zqlq.composewan.ui.screens.system.SystemScreen
-import com.zqlq.composewan.ui.screens.webview.WebViewScreen
+import com.zqlq.composewan.ui.about.screens.AboutScreen
+import com.zqlq.composewan.ui.collect.screens.CollectScreen
+import com.zqlq.composewan.ui.home.screens.HomeScreen
+import com.zqlq.composewan.ui.hot.screens.HotScreen
+import com.zqlq.composewan.ui.login.screens.LoginScreen
+import com.zqlq.composewan.ui.login.screens.RegisterScreen
+import com.zqlq.composewan.ui.mine.screens.MineScreen
+import com.zqlq.composewan.ui.search.screens.SearchScreen
+import com.zqlq.composewan.ui.system.screens.SystemDetailScreen
+import com.zqlq.composewan.ui.system.screens.SystemScreen
+import com.zqlq.composewan.ui.webview.screens.WebViewScreen
 
 /**
  * 底栏导航项

@@ -1,4 +1,4 @@
-package com.zqlq.composewan.ui.screens.webview
+package com.zqlq.composewan.ui.webview.screens
 
 import android.webkit.WebResourceRequest
 import android.webkit.WebView

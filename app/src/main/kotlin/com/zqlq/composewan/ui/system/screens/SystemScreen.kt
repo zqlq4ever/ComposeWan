@@ -1,4 +1,4 @@
-package com.zqlq.composewan.ui.screens.system
+package com.zqlq.composewan.ui.system.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState

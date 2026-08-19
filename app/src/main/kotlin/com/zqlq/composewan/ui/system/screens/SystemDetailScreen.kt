@@ -1,4 +1,4 @@
-package com.zqlq.composewan.ui.screens.system
+package com.zqlq.composewan.ui.system.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box

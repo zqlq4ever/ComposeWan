@@ -1,4 +1,4 @@
-package com.zqlq.composewan.ui.screens.search
+package com.zqlq.composewan.ui.search.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
