@@ -41,7 +41,7 @@ import coil3.request.ImageRequest
 @Composable
 fun AboutScreen(
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     // 系统返回键处理
     BackHandler {
@@ -58,54 +58,59 @@ fun AboutScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回"
+                            contentDescription = "返回",
                         )
                     }
                 },
                 // 使用默认的TopAppBar样式，自动处理状态栏颜色
-                colors = TopAppBarDefaults.topAppBarColors()
+                colors = TopAppBarDefaults.topAppBarColors(),
             )
-        }
+        },
     ) {
         // 页面内容区域使用纯白背景
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White)
-                .padding(it)
-                .padding(horizontal = 16.dp),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(Color.White)
+                    .padding(it)
+                    .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+            verticalArrangement = Arrangement.Top,
         ) {
-
             Spacer(modifier = Modifier.size(30.dp))
 
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data("https://picsum.photos/300?random=1blur=2")
-                    .memoryCachePolicy(CachePolicy.ENABLED)  // 内存缓存
-                    .diskCachePolicy(CachePolicy.DISABLED)    // 禁用磁盘缓存
-                    .build(),
+                model =
+                    ImageRequest
+                        .Builder(LocalContext.current)
+                        .data("https://picsum.photos/300?random=1blur=2")
+                        .memoryCachePolicy(CachePolicy.ENABLED) // 内存缓存
+                        .diskCachePolicy(CachePolicy.DISABLED) // 禁用磁盘缓存
+                        .build(),
                 contentDescription = "应用图标",
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
+                modifier =
+                    Modifier
+                        .size(120.dp)
+                        .clip(CircleShape),
+                contentScale = ContentScale.Crop,
             )
 
             Text(
                 text = "Compose玩Android\n版本 1.0.0",
                 textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .padding(top = 24.dp)
-                    .fillMaxWidth()
+                modifier =
+                    Modifier
+                        .padding(top = 24.dp)
+                        .fillMaxWidth(),
             )
 
             Text(
                 text = "一个基于Jetpack Compose开发的Android应用，展示玩Android API数据。",
-                modifier = Modifier
-                    .padding(top = 24.dp)
-                    .fillMaxWidth()
+                modifier =
+                    Modifier
+                        .padding(top = 24.dp)
+                        .fillMaxWidth(),
             )
         }
     }

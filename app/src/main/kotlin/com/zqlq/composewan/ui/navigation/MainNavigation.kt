@@ -1,7 +1,9 @@
 package com.zqlq.composewan.ui.navigation
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Home
@@ -68,6 +70,8 @@ fun MainNavigation() {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        // 状态栏交给各页自己处理，避免二级页 TopAppBar 再垫一层
+        contentWindowInsets = WindowInsets(0),
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar {
@@ -91,7 +95,10 @@ fun MainNavigation() {
     ) { padding ->
         NavDisplay(
             backStack = topLevelBackStack.backStack,
-            modifier = Modifier.padding(padding),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(bottom = padding.calculateBottomPadding()),
             onBack = { topLevelBackStack.removeLast() },
             entryDecorators =
                 listOf(
@@ -102,18 +109,21 @@ fun MainNavigation() {
                 entryProvider {
                     entry<HomeTab> {
                         HomeScreen(
+                            modifier = Modifier.statusBarsPadding(),
                             onNavigateToWebView = { url -> topLevelBackStack.add(WebViewKey(url)) },
                             onNavigateToSearch = { topLevelBackStack.add(SearchKey()) },
                         )
                     }
                     entry<HotTab> {
                         HotScreen(
+                            modifier = Modifier.statusBarsPadding(),
                             onNavigateToWebView = { url -> topLevelBackStack.add(WebViewKey(url)) },
                             onNavigateToSearch = { query -> topLevelBackStack.add(SearchKey(query)) },
                         )
                     }
                     entry<SystemTab> {
                         SystemScreen(
+                            modifier = Modifier.statusBarsPadding(),
                             onNavigateToSystemDetail = { categoryName, children ->
                                 topLevelBackStack.add(SystemDetailKey(categoryName, children))
                             },
@@ -121,6 +131,7 @@ fun MainNavigation() {
                     }
                     entry<MineTab> {
                         MineScreen(
+                            modifier = Modifier.statusBarsPadding(),
                             onAboutClick = { topLevelBackStack.add(AboutKey) },
                             onCollectClick = { topLevelBackStack.add(CollectKey) },
                             onLoginClick = { topLevelBackStack.add(LoginKey) },

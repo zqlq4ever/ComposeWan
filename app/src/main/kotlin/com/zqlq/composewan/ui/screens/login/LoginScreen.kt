@@ -223,7 +223,9 @@ fun LoginScreen(
                 // 注册按钮
                 TextButton(
                     onClick = { viewModel.handleIntent(LoginIntent.RegisterClick) },
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
                 ) {
                     Text("注册")
                 }

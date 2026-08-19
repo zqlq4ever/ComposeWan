@@ -40,6 +40,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.zqlq.common.utils.toast.ToastUtils
@@ -47,6 +49,7 @@ import com.zqlq.composewan.R
 import com.zqlq.composewan.data.model.ArticleItem
 import com.zqlq.composewan.data.model.BannerItem
 import com.zqlq.composewan.ui.components.ArticleItemView
+import com.zqlq.composewan.ui.components.ErrorRetryPane
 import com.zqlq.composewan.ui.home.viewmodel.HomeViewModel
 import com.zqlq.composewan.ui.home.viewmodel.contract.HomeEvent
 import com.zqlq.composewan.ui.home.viewmodel.contract.HomeIntent
@@ -72,6 +75,13 @@ fun HomeScreen(
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        val current = viewModel.uiState.value
+        if (current.error != null && current.banners.isEmpty() && !current.isLoading) {
+            viewModel.handleIntent(HomeIntent.LoadData)
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
@@ -120,13 +130,27 @@ private fun HomeContent(
             }
 
             state.error != null && state.banners.isEmpty() -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
+                val pullToRefreshState = rememberPullToRefreshState()
+                PullToRefreshBox(
+                    state = pullToRefreshState,
+                    isRefreshing = state.isRefreshing,
+                    onRefresh = { onIntent(HomeIntent.Refresh) },
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .weight(1f),
+                    indicator = {
+                        Indicator(
+                            modifier = Modifier.align(Alignment.TopCenter),
+                            isRefreshing = state.isRefreshing,
+                            color = MaterialTheme.colorScheme.primary,
+                            state = pullToRefreshState,
+                        )
+                    },
                 ) {
-                    Text(
-                        text = state.error,
-                        color = MaterialTheme.colorScheme.error,
+                    ErrorRetryPane(
+                        message = state.error,
+                        onRetry = { onIntent(HomeIntent.LoadData) },
                     )
                 }
             }

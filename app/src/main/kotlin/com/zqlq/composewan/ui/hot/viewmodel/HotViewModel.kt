@@ -2,6 +2,7 @@ package com.zqlq.composewan.ui.hot.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.zqlq.composewan.ui.common.toLoadError
 import com.zqlq.composewan.ui.hot.usecase.HotUseCase
 import com.zqlq.composewan.ui.hot.viewmodel.contract.HotEvent
 import com.zqlq.composewan.ui.hot.viewmodel.contract.HotIntent
@@ -49,7 +50,7 @@ class HotViewModel(
                     it.copy(hotKeys = hotKeys, websites = websites, isLoading = false)
                 }
             }.onFailure { e ->
-                _uiState.update { it.copy(isLoading = false, error = e.message) }
+                _uiState.update { it.copy(isLoading = false, error = e.toLoadError()) }
             }
         }
     }

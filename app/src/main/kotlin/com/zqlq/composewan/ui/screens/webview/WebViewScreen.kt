@@ -5,7 +5,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -74,11 +74,11 @@ fun WebViewScreen(
                 colors = TopAppBarDefaults.topAppBarColors()
             )
         }
-    ) {
+    ) { paddingValues ->
         AndroidView(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding(), // 只在内容区域添加状态栏padding
+                .padding(paddingValues),
             factory = { context ->
                 WebView(context).apply {
                     settings.apply {

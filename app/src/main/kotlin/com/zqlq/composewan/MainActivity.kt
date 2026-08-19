@@ -1,5 +1,6 @@
 package com.zqlq.composewan
 
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.os.SystemClock
 import androidx.activity.ComponentActivity
@@ -27,6 +28,7 @@ class MainActivity : ComponentActivity() {
      * @param savedInstanceState 保存的实例状态
      */
     override fun onCreate(savedInstanceState: Bundle?) {
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
@@ -34,6 +36,11 @@ class MainActivity : ComponentActivity() {
                 AppContent()
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
     }
 }
 

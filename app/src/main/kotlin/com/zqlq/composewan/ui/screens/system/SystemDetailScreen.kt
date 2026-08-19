@@ -34,11 +34,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.zqlq.common.utils.toast.ToastUtils
 import com.zqlq.composewan.data.model.ArticleItem
 import com.zqlq.composewan.data.model.SystemChild
 import com.zqlq.composewan.ui.components.ArticleItemView
+import com.zqlq.composewan.ui.components.ErrorRetryPane
 import com.zqlq.composewan.ui.system.viewmodel.SystemDetailViewModel
 import com.zqlq.composewan.ui.system.viewmodel.contract.SystemDetailEvent
 import com.zqlq.composewan.ui.system.viewmodel.contract.SystemDetailIntent
@@ -71,6 +74,13 @@ fun SystemDetailScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        val current = viewModel.uiState.value
+        if (current.error != null && current.articles.isEmpty() && !current.isLoading) {
+            viewModel.handleIntent(SystemDetailIntent.Retry)
+        }
+    }
 
     // 系统返回键处理
     BackHandler(onBack = onBack)
@@ -145,16 +155,11 @@ fun SystemDetailScreen(
                     }
                 }
 
-                state.error != null -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = state.error ?: "未知错误",
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                    }
+                state.error != null && state.articles.isEmpty() -> {
+                    ErrorRetryPane(
+                        message = state.error,
+                        onRetry = { viewModel.handleIntent(SystemDetailIntent.Retry) },
+                    )
                 }
 
                 else -> {

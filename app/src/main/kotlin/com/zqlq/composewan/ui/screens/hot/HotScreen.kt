@@ -26,10 +26,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.zqlq.common.utils.toast.ToastUtils
 import com.zqlq.composewan.data.model.HotKeyItem
 import com.zqlq.composewan.data.model.WebsiteItem
+import com.zqlq.composewan.ui.components.ErrorRetryPane
 import com.zqlq.composewan.ui.hot.viewmodel.HotViewModel
 import com.zqlq.composewan.ui.hot.viewmodel.contract.HotEvent
 import com.zqlq.composewan.ui.hot.viewmodel.contract.HotIntent
@@ -54,6 +57,13 @@ fun HotScreen(
     viewModel: HotViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        val current = viewModel.uiState.value
+        if (current.error != null && current.hotKeys.isEmpty() && !current.isLoading) {
+            viewModel.handleIntent(HotIntent.LoadData)
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
@@ -100,15 +110,11 @@ private fun HotContent(
         }
 
         state.error != null && state.hotKeys.isEmpty() -> {
-            Box(
-                modifier = modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = state.error ?: "未知错误",
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
+            ErrorRetryPane(
+                message = state.error,
+                onRetry = { onIntent(HotIntent.LoadData) },
+                modifier = modifier,
+            )
         }
 
         else -> {

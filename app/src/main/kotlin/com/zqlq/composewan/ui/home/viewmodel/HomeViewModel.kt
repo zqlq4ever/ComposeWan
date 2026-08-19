@@ -7,6 +7,7 @@ import com.zqlq.composewan.ui.home.usecase.HomeUseCase
 import com.zqlq.composewan.ui.home.viewmodel.contract.HomeEvent
 import com.zqlq.composewan.ui.home.viewmodel.contract.HomeIntent
 import com.zqlq.composewan.ui.home.viewmodel.contract.HomeUiState
+import com.zqlq.composewan.ui.common.toLoadError
 import com.zqlq.network.ApiException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -64,7 +65,7 @@ class HomeViewModel(
                     )
                 }
             }.onFailure { e ->
-                _uiState.update { it.copy(isLoading = false, error = e.message) }
+                _uiState.update { it.copy(isLoading = false, error = e.toLoadError()) }
             }
         }
     }
@@ -85,7 +86,7 @@ class HomeViewModel(
                     )
                 }
             }.onFailure { e ->
-                _uiState.update { it.copy(isRefreshing = false, error = e.message) }
+                _uiState.update { it.copy(isRefreshing = false, error = e.toLoadError()) }
             }
         }
     }

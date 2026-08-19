@@ -3,6 +3,7 @@ package com.zqlq.composewan.ui.system.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zqlq.composewan.data.model.SystemChild
+import com.zqlq.composewan.ui.common.toLoadError
 import com.zqlq.composewan.ui.system.usecase.SystemUseCase
 import com.zqlq.composewan.ui.system.viewmodel.contract.SystemEvent
 import com.zqlq.composewan.ui.system.viewmodel.contract.SystemIntent
@@ -47,7 +48,7 @@ class SystemViewModel(
                 .onSuccess { categories ->
                     _uiState.update { it.copy(categories = categories, isLoading = false) }
                 }.onFailure { e ->
-                    _uiState.update { it.copy(isLoading = false, error = e.message) }
+                    _uiState.update { it.copy(isLoading = false, error = e.toLoadError()) }
                 }
         }
     }

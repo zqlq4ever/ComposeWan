@@ -75,6 +75,8 @@ sealed interface SystemDetailIntent {
     ) : SystemDetailIntent
 
     data object LoadMore : SystemDetailIntent
+
+    data object Retry : SystemDetailIntent
 }
 
 /**

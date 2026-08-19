@@ -8,6 +8,7 @@ import com.zqlq.composewan.ui.system.usecase.SystemUseCase
 import com.zqlq.composewan.ui.system.viewmodel.contract.SystemDetailEvent
 import com.zqlq.composewan.ui.system.viewmodel.contract.SystemDetailIntent
 import com.zqlq.composewan.ui.system.viewmodel.contract.SystemDetailUiState
+import com.zqlq.composewan.ui.common.toLoadError
 import com.zqlq.network.ApiException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -53,6 +54,7 @@ class SystemDetailViewModel(
             is SystemDetailIntent.SelectChild -> selectChild(intent.childId)
             is SystemDetailIntent.ArticleClick -> onArticleClick(intent.url)
             is SystemDetailIntent.CollectClick -> onCollectClick(intent.articleId, intent.isCollect)
+            SystemDetailIntent.Retry -> loadArticles()
             SystemDetailIntent.LoadMore -> loadMoreArticles()
         }
     }
@@ -82,7 +84,7 @@ class SystemDetailViewModel(
                     )
                 }
             }.onFailure { e ->
-                _uiState.update { it.copy(isLoading = false, error = e.message) }
+                _uiState.update { it.copy(isLoading = false, error = e.toLoadError()) }
             }
         }
     }

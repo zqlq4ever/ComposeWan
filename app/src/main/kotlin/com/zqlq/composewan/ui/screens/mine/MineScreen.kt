@@ -44,20 +44,22 @@ private val avatarUrl2 = "https://api.eyabc.cn/api/picture/mc"
  * 我的屏幕
  * 展示用户信息和菜单列表
  *
+ * @param modifier 修饰符
  * @param onAboutClick 关于点击回调
  * @param onCollectClick 我的收藏点击回调
  * @param onLoginClick 登录点击回调
  */
 @Composable
 fun MineScreen(
+    modifier: Modifier = Modifier,
     onAboutClick: () -> Unit = {},
     onCollectClick: () -> Unit = {},
-    onLoginClick: () -> Unit = {}
+    onLoginClick: () -> Unit = {},
 ) {
     var showUpdateDialog by remember { mutableStateOf(false) }
     var showAvatarPreview by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
                 HeaderSection(
                     onAvatarClick = { showAvatarPreview = true },

@@ -37,10 +37,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.zqlq.common.utils.toast.ToastUtils
 import com.zqlq.composewan.data.model.SystemCategory
 import com.zqlq.composewan.data.model.SystemChild
+import com.zqlq.composewan.ui.components.ErrorRetryPane
 import com.zqlq.composewan.ui.system.viewmodel.SystemViewModel
 import com.zqlq.composewan.ui.system.viewmodel.contract.SystemEvent
 import com.zqlq.composewan.ui.system.viewmodel.contract.SystemIntent
@@ -63,6 +66,13 @@ fun SystemScreen(
     viewModel: SystemViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        val current = viewModel.uiState.value
+        if (current.error != null && current.categories.isEmpty() && !current.isLoading) {
+            viewModel.handleIntent(SystemIntent.LoadData)
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
@@ -105,15 +115,11 @@ private fun SystemContent(
         }
 
         state.error != null && state.categories.isEmpty() -> {
-            Box(
-                modifier = modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = state.error ?: "未知错误",
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
+            ErrorRetryPane(
+                message = state.error,
+                onRetry = { onIntent(SystemIntent.LoadData) },
+                modifier = modifier,
+            )
         }
 
         else -> {
