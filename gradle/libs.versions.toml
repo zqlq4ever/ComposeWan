@@ -1,5 +1,6 @@
 [versions]
 agp = "9.3.1"
+composemeshgradient = "0.3.0"
 kotlin-compose = "2.4.10"
 kotlin-serialization = "2.4.10"
 kotlin-multiplatform = "2.4.10"
@@ -24,6 +25,8 @@ appcompat = "1.7.1"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+# OpenGL ES 渲染的流体 Mesh Gradient 背景库（Catmull-Rom 插值，过渡平滑）
+composemeshgradient = { module = "io.github.om252345:composemeshgradient", version.ref = "composemeshgradient" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization-json" }
